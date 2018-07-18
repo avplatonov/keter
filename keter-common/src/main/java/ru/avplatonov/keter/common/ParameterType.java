@@ -17,5 +17,6 @@
 
 package ru.avplatonov.keter.common;
 
-public class Task {
+public enum ParameterType {
+    INT, DOUBLE, STRING, FILE_PATH
 }

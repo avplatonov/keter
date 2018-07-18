@@ -17,5 +17,6 @@
 
 package ru.avplatonov.keter.common;
 
-public class Graph {
+public enum InOutType {
+    IN, OUT, PARAM
 }
