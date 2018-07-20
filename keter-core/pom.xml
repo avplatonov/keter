@@ -10,6 +10,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <docker.client>8.11.7</docker.client>
     </properties>
 
     <parent>
@@ -48,6 +49,10 @@
     </build>
 
     <dependencies>
-
+        <dependency>
+            <groupId>com.spotify</groupId>
+            <artifactId>docker-client</artifactId>
+            <version>${docker.client}</version>
+        </dependency>
     </dependencies>
 </project>

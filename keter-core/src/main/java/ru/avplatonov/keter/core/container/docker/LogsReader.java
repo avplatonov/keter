@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.container;
+package ru.avplatonov.keter.core.container.docker;
 
-import java.nio.file.Path;
-import java.util.List;
+import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.messages.ContainerCreation;
+import java.util.stream.Stream;
 
-public interface Command {
-    public String script();
-
-    public List<Path> sharedPaths();
+public class LogsReader {
+    public static Stream<String> readToStream(DockerClient client, String containerId) {
+        return null;
+    }
 }
