@@ -15,22 +15,16 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage;
+package ru.avplatonov.keter.core.storage
 
-public class FileDescriptor {
-    private final String scheme;
-    private final String fileKey;
+/**
+  * Generic representation of file in file system.
+  *
+  * @param scheme Type of file system.
+  * @param path Sequence of directories to file.
+  * @param key Unique name for file in directory.
+  * @param isDir true if file descriptor points to directory.
+  */
+case class FileDescriptor(scheme: PathScheme, path: List[String], key: String, isDir: Boolean) {
 
-    public FileDescriptor(String scheme, String fileKey) {
-        this.scheme = scheme;
-        this.fileKey = fileKey;
-    }
-
-    public String getScheme() {
-        return scheme;
-    }
-
-    public String getFileKey() {
-        return fileKey;
-    }
 }

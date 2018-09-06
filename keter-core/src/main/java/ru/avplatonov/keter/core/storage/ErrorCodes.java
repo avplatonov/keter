@@ -17,23 +17,14 @@
 
 package ru.avplatonov.keter.core.storage;
 
-import java.nio.file.Path;
-import java.util.List;
-
-public interface FileStorage {
-    boolean exists(FileDescriptor fileDescriptor);
-
-    boolean move(FileDescriptor currentName, FileDescriptor newName);
-
-    boolean copy(FileDescriptor from, FileDescriptor to);
-
-    boolean cache(FileDescriptor descriptor, Path localPath);
-
-    boolean push(Path localPath, FileDescriptor to);
-
-    boolean isDirectory(FileDescriptor descriptor);
-
-    boolean isFile(FileDescriptor descriptor);
-
-    List<FileDescriptor> getFilesInDir(FileDescriptor descriptor);
+/**
+ * Error codes for specific FileStorage methods.
+ */
+public enum ErrorCodes {
+    /** Ok. */
+    OK,
+    /** File already exists.*/
+    FILE_ALREADY_EXISTS,
+    /** Error. */
+    ERROR //In this case exception will be thrown.
 }
