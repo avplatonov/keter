@@ -15,33 +15,14 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task
+package ru.avplatonov.keter.core.task.resource;
 
-/**
-  * Comment to task.
-  */
-trait Comment {
-    /**
-      * @return string representation of comment.
-      */
-    def stringValue(): String
-}
-
-object Comment {
+/** */
+public enum ResourceType {
     /** */
-    case object Empty extends Comment {
-        /**
-          * @return string representation of comment.
-          */
-        override def stringValue(): String = ""
-    }
-
-    /** Represents comment about error while task running. */
-    case class Error(exception: Exception) extends Comment {
-        /**
-          * @return string representation of comment.
-          */
-        override def stringValue(): String = exception.getStackTrace
-            .map(_.toString).mkString("\n\t")
-    }
+    CPU,
+    /** */
+    MEM,
+    /** */
+    HDD
 }

@@ -21,6 +21,7 @@ import java.util.UUID
 
 import ru.avplatonov.keter.core.storage.FileStorage
 import ru.avplatonov.keter.core.task.Task
+import ru.avplatonov.keter.core.task.resource.ResourceManager
 
 case class Settings(timeout: Long)
 

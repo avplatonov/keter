@@ -15,11 +15,30 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task
+package ru.avplatonov.keter.core.task.resource
 
 /**
   * Represents resouce management system: check resources in system, borrowing and returning them.
   */
 trait ResourceManager {
+    /**
+      * @return resource status for all types of resource.
+      */
+    def resources(): Map[ResourceType, Long]
 
+    /**
+      * Acquires resources of specific types.
+      *
+      * @param values needed resources.
+      * @return true if acquiring was successful.
+      */
+    def acquire(values: Map[ResourceType, Long]): Boolean
+
+    /**
+      * Release resources of specific types.
+      *
+      * @param values resources.
+      * @return true if releasing was successful.
+      */
+    def release(values: Map[ResourceType, Long]): Boolean
 }

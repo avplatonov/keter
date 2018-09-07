@@ -34,3 +34,15 @@ case class Graph(tasks: Map[Long, Task], edges: Map[Long, Long])
   * @param status status.
   */
 case class Task(id: UUID, status: TaskStatus)
+
+/**
+  * Represents abstract task field.
+  *
+  * @param name field name.
+  * @param value field value.
+  */
+case class TaskField(name: String, value: Any)
+
+object TaskField {
+    def extract(name: String)(task: Task): TaskField = ???
+}

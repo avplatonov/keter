@@ -15,33 +15,24 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task
+package ru.avplatonov.keter.core.task.resource
 
 /**
-  * Comment to task.
+  * Abstract resource of system.
   */
-trait Comment {
+trait Resource {
     /**
-      * @return string representation of comment.
+      * Resource type.
       */
-    def stringValue(): String
-}
+    val `type`: ResourceType
 
-object Comment {
-    /** */
-    case object Empty extends Comment {
-        /**
-          * @return string representation of comment.
-          */
-        override def stringValue(): String = ""
-    }
+    /**
+      * Max resource value in system.
+      */
+    val maxValue: Long
 
-    /** Represents comment about error while task running. */
-    case class Error(exception: Exception) extends Comment {
-        /**
-          * @return string representation of comment.
-          */
-        override def stringValue(): String = exception.getStackTrace
-            .map(_.toString).mkString("\n\t")
-    }
+    /**
+      * @return amount of resource.
+      */
+    def currentAmount(): Long
 }
