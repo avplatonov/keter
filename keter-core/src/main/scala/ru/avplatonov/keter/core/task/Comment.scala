@@ -15,12 +15,19 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task;
+package ru.avplatonov.keter.core.task
 
-import java.util.concurrent.Future;
+trait Comment {
+    def stringValue(): String
+}
 
-public interface TaskQueue {
-    Future<TaskDescriptor> receiveNewTask();
+object Comment {
+    case object Empty extends Comment {
+        override def stringValue(): String = ""
+    }
 
-    void completeTask(TaskDescriptor taskDescriptor);
+    case class Error(exception: Exception) extends Comment {
+        override def stringValue(): String = exception.getStackTrace
+            .map(_.toString).mkString("\n\t")
+    }
 }

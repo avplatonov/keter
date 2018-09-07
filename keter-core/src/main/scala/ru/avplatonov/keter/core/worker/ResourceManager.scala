@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task;
+package ru.avplatonov.keter.core.worker
 
-public class TaskDescriptor {
+trait ResourceManager {
+
 }

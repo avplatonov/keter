@@ -15,8 +15,16 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task;
+package ru.avplatonov.keter.core.worker
 
-public interface Scheduler {
+import java.util.UUID
 
+case class Settings(timeout: Long)
+
+trait Worker {
+    val id: UUID
+
+    val settings: Settings
+
+    val resourceManager: ResourceManager
 }

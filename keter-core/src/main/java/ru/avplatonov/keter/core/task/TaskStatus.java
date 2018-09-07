@@ -15,8 +15,20 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.worker;
+package ru.avplatonov.keter.core.task;
 
-public class WorkerResult {
-
+/** */
+public enum TaskStatus {
+    /** Task awaits other tasks on witch it depends. */
+    AWAITING_DEPENDENCIES,
+    /** Task awaits resources for running it. */
+    PENDING,
+    /** Task was locked by worker but not started. */
+    LOCKED,
+    /** Task was started for execution on some worker. */
+    RUNNING,
+    /** Task was completed by worker. */
+    COMPLETED,
+    /** Task was completed with error. Comment for task should contains causes of fail. */
+    FAILED
 }

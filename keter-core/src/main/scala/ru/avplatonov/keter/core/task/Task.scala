@@ -15,12 +15,22 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.worker;
+package ru.avplatonov.keter.core.task
 
-import ru.avplatonov.keter.core.storage.FileDescriptor;
+import java.util.UUID
 
-public interface WorkDescriptor {
-    FileDescriptor getLogFileDescriptor();
+/**
+  * Represents dependencies between tasks.
+  *
+  * @param tasks tasks list with their local ids in graph.
+  * @param edges dependencies in graph.
+  */
+case class Graph(tasks: Map[Long, Task], edges: Map[Long, Long])
 
-    FileDescriptor getWorkingDir();
-}
+/**
+  * Represents task in queue.
+  *
+  * @param id unique id in system.
+  * @param status status.
+  */
+case class Task(id: UUID, status: TaskStatus)

@@ -15,21 +15,11 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.worker;
+package ru.avplatonov.keter.core.task
 
-import java.util.concurrent.Future;
-import ru.avplatonov.keter.core.task.TaskDescriptor;
+/**
+  * Represents resouce management system: check resources in system, borrowing and returning them.
+  */
+trait ResourceManager {
 
-public interface Worker {
-    public enum Status {
-        CREATED, RUNNING, COMPLETE, FAILED
-    }
-
-    WorkDescriptor run(TaskDescriptor taskDescriptor);
-
-    Status getStatus();
-
-    Future<WorkerResult> getResults();
-
-    void shutdown();
 }
