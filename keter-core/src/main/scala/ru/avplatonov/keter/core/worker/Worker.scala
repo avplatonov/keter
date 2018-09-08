@@ -23,8 +23,6 @@ import ru.avplatonov.keter.core.storage.FileStorage
 import ru.avplatonov.keter.core.task.Task
 import ru.avplatonov.keter.core.task.resource.ResourceManager
 
-case class Settings(timeout: Long)
-
 /**
   * Trait for worker running task on local machine and providing sandbox for this tasks, manipulating with FS for
   * task working, uploading output of task.
@@ -38,7 +36,7 @@ trait Worker {
     /**
       * Settings for worker like timeouts to task completing.
       */
-    val settings: Settings
+    val settings: Worker.Settings
 
     /**
       * Resource manager for worker.
@@ -103,4 +101,10 @@ trait Worker {
       * @return work status.
       */
     protected def checkStatus(work: Work): WorkStatus
+}
+
+/** */
+object Worker {
+    /** */
+    case class Settings(timeout: Long)
 }
