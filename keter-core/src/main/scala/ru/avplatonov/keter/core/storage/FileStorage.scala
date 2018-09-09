@@ -18,21 +18,37 @@
 package ru.avplatonov.keter.core.storage
 
 import java.io.InputStream
-import java.util
 
 import resource.ManagedResource
 
 /**
+  * Generic representation of file in file system.
+  */
+abstract class FileDescriptor {
+    /** Type of file system. */
+    val scheme: PathScheme
+
+    /** Sequence of directories to file. */
+    val path: List[String]
+
+    /** Unique name for file in directory. */
+    val key: String
+
+    /** true if file descriptor points to directory, Empty if isDir is unknown. */
+    val isDir: Option[Boolean]
+}
+
+/**
   * API for File Storage than must be implemented by all File Systems [distributed or local].
   */
-trait FileStorage {
+trait FileStorage[T >: FileDescriptor] {
     /**
       * Checks existing file in File System by descriptor.
       *
       * @param fileDesc File descriptor.
       * @return true if file exists.
       */
-    def exists(fileDesc: FileDescriptor): Boolean
+    def exists(fileDesc: T): Boolean
 
     /**
       * Creates new file in File System.
@@ -41,7 +57,7 @@ trait FileStorage {
       * @param ignoreExisting if ignoreExisting == true then FS rewrite already created file.
       * @return true if operation was successful.
       */
-    def create(currName: FileDescriptor, ignoreExisting: Boolean): Boolean
+    def create(currName: T, ignoreExisting: Boolean): Boolean
 
     /**
       * Moves file to target destination.
@@ -51,7 +67,7 @@ trait FileStorage {
       * @param ignoreExisting if ignoreExisting == true then FS rewrite already created file.
       * @return true if operation was successful.
       */
-    def move(from: FileDescriptor, to: FileDescriptor, ignoreExisting: Boolean): Boolean
+    def move(from: T, to: T, ignoreExisting: Boolean): Boolean
 
     /**
       * Copy file to target destination.
@@ -61,7 +77,7 @@ trait FileStorage {
       * @param ignoreExisting if ignoreExisting == true then FS rewrite already created file.
       * @return true if operation was successful.
       */
-    def copy(from: FileDescriptor, to: FileDescriptor, ignoreExisting: Boolean): Boolean
+    def copy(from: T, to: T, ignoreExisting: Boolean): Boolean
 
     /**
       * Returns list of files for directory.
@@ -70,7 +86,7 @@ trait FileStorage {
       * @param desc Directory path.
       * @return list of files for directory.
       */
-    def getFilesInDirectory(desc: FileDescriptor): util.List[FileDescriptor]
+    def getFilesInDirectory(desc: T): List[T]
 
-    def open(desc: FileDescriptor): ManagedResource[InputStream]
+    def open(desc: T): ManagedResource[InputStream]
 }

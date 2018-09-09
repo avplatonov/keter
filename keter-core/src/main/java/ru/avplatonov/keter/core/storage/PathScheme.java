@@ -22,9 +22,15 @@ package ru.avplatonov.keter.core.storage;
  */
 public enum PathScheme {
     /** Local file path. */
-    local,
+    local("local"),
     /** Path in Helix. */
-    helix,
+    helix("helix"),
     /** Web url as path. */
-    url
+    url("http");
+
+    public final String name;
+
+    PathScheme(String name) {
+        this.name = name;
+    }
 }

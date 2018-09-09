@@ -19,7 +19,7 @@ package ru.avplatonov.keter.core.worker
 
 import java.util.UUID
 
-import ru.avplatonov.keter.core.storage.FileStorage
+import ru.avplatonov.keter.core.storage.{FileDescriptor, FileStorage}
 import ru.avplatonov.keter.core.task.Task
 import ru.avplatonov.keter.core.task.resource.ResourceManager
 
@@ -46,7 +46,7 @@ trait Worker {
     /**
       * File storage for worker.
       */
-    protected val fileStorage: FileStorage
+    protected val fileStorage: FileStorage[FileDescriptor]
 
     /**
       * Gets task description, prepares sandbox for it, downloads files for task running

@@ -22,7 +22,7 @@ import java.nio.file.Path
 /**
   * Interface for distributed file storage with local file system caching.
   */
-trait DistributedFileStorageWithCache extends FileStorage {
+trait DistributedFileStorageWithCache[T >: FileDescriptor] extends FileStorage[T] {
     /**
       * Download file from distributed storage to local file system.
       *
