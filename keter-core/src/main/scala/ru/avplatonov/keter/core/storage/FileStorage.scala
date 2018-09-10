@@ -17,7 +17,7 @@
 
 package ru.avplatonov.keter.core.storage
 
-import java.io.InputStream
+import java.io.{InputStream, OutputStream}
 
 import resource.ManagedResource
 
@@ -41,7 +41,7 @@ abstract class FileDescriptor {
 /**
   * API for File Storage than must be implemented by all File Systems [distributed or local].
   */
-trait FileStorage[T >: FileDescriptor] {
+trait FileStorage[T <: FileDescriptor] {
     /**
       * Checks existing file in File System by descriptor.
       *
@@ -88,5 +88,19 @@ trait FileStorage[T >: FileDescriptor] {
       */
     def getFilesInDirectory(desc: T): List[T]
 
-    def open(desc: T): ManagedResource[InputStream]
+    /**
+      * Opens file by descriptor for reading and returns InputStream.
+      *
+      * @param desc file descriptor.
+      * @return stream resource.
+      */
+    def read(desc: T): ManagedResource[InputStream]
+
+    /**
+      * Opens file by descriptor for writing and returns InputStream.
+      *
+      * @param desc file descriptor.
+      * @return stream resource.
+      */
+    def write(desc: T): ManagedResource[OutputStream]
 }

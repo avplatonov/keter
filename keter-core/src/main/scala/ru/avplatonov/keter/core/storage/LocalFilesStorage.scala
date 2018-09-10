@@ -17,8 +17,8 @@
 
 package ru.avplatonov.keter.core.storage
 
-import java.io.InputStream
-import java.nio.file.{Files, Path, Paths}
+import java.io.{InputStream, OutputStream}
+import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import java.util.stream.Collectors
 
 import resource.ManagedResource
@@ -128,8 +128,25 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
         }
     }
 
-    override def open(desc: LocalFileDescriptor): ManagedResource[InputStream] = ???
+    /**
+      * Opens file by descriptor for reading and returns InputStream.
+      *
+      * @param desc file descriptor.
+      * @return stream resource.
+      */
+    override def read(desc: LocalFileDescriptor): ManagedResource[InputStream] =
+        resource.managed(Files.newInputStream(desc.filepath, StandardOpenOption.READ))
 
+    /**
+      * Opens file by descriptor for writing and returns InputStream.
+      *
+      * @param desc file descriptor.
+      * @return stream resource.
+      */
+    override def write(desc: LocalFileDescriptor): ManagedResource[OutputStream] =
+        resource.managed(Files.newOutputStream(desc.filepath, StandardOpenOption.TRUNCATE_EXISTING))
+
+    /** */
     private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit) =
         if(!ignoreExisting && exists(fileToCheck)) false
         else {
@@ -137,6 +154,7 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
             true
         }
 
+    /** */
     private def toDesc(jpath: Path): LocalFileDescriptor = {
         LocalFileDescriptorParser.parse(jpath.toString).copy(
             isDir = Some(Files.isDirectory(jpath))

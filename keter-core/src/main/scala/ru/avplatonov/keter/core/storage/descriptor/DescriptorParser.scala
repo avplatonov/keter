@@ -22,7 +22,7 @@ import ru.avplatonov.keter.core.storage.{FileDescriptor, PathScheme}
 /**
   * Represents API for parsing file descriptors.
   */
-trait DescriptorParser[T >: FileDescriptor] {
+trait DescriptorParser[T <: FileDescriptor] {
     /**
       * Prefix for filepath.
       */
