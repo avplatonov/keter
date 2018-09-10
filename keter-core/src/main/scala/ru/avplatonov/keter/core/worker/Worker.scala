@@ -22,6 +22,7 @@ import java.util.UUID
 import ru.avplatonov.keter.core.storage.{FileDescriptor, FileStorage}
 import ru.avplatonov.keter.core.task.Task
 import ru.avplatonov.keter.core.task.resource.ResourceManager
+import ru.avplatonov.keter.core.worker.context.{ContextAPI, ContextDescriptor}
 
 /**
   * Trait for worker running task on local machine and providing sandbox for this tasks, manipulating with FS for
@@ -47,6 +48,11 @@ trait Worker {
       * File storage for worker.
       */
     protected val fileStorage: FileStorage[FileDescriptor]
+
+    /**
+      * Working context API.
+      */
+    protected val ctx: ContextAPI[_ <: ContextDescriptor[_]]
 
     /**
       * Gets task description, prepares sandbox for it, downloads files for task running
