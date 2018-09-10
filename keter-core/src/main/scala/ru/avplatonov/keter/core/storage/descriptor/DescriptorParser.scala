@@ -55,5 +55,5 @@ trait DescriptorParser[T <: FileDescriptor] {
     def parse(path: String): T
 
     /** */
-    protected val prefixStr = s"${prefix.name}://"
+    protected def prefixStr = s"${prefix.name}://"
 }

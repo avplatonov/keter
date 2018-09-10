@@ -55,7 +55,7 @@ object LocalFileDescriptorParser extends DescriptorParser[LocalFileDescriptor] {
             filepath = jpath,
             path = tokens.init,
             key = tokens.last,
-            isDir = None
+            isDir = Some(Files.isDirectory(jpath))
         )
     }
 }
@@ -144,7 +144,7 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
       * @return stream resource.
       */
     override def write(desc: LocalFileDescriptor): ManagedResource[OutputStream] =
-        resource.managed(Files.newOutputStream(desc.filepath, StandardOpenOption.TRUNCATE_EXISTING))
+        resource.managed(Files.newOutputStream(desc.filepath))
 
     /** */
     private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit) =
