@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage
+package ru.avplatonov.keter.core.storage.local
 
 import java.io.{InputStream, OutputStream}
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import java.util.stream.Collectors
 
 import resource.ManagedResource
+import ru.avplatonov.keter.core.storage._
 import ru.avplatonov.keter.core.storage.descriptor.DescriptorParser
 
 import scala.collection.JavaConverters._
@@ -145,6 +146,14 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
       */
     override def write(desc: LocalFileDescriptor): ManagedResource[OutputStream] =
         resource.managed(Files.newOutputStream(desc.filepath))
+
+    /**
+      * Deletes file.
+      *
+      * @param desc file descriptor.
+      * @return true if operation was successful.
+      */
+    override def delete(desc: LocalFileDescriptor): Boolean = desc.filepath.toFile.delete()
 
     /** */
     private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit) =

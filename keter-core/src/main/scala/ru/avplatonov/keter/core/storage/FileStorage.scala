@@ -80,6 +80,14 @@ trait FileStorage[T <: FileDescriptor] {
     def copy(from: T, to: T, ignoreExisting: Boolean): Boolean
 
     /**
+      * Deletes file.
+      *
+      * @param desc file descriptor.
+      * @return true if operation was successful.
+      */
+    def delete(desc: T): Boolean
+
+    /**
       * Returns list of files for directory.
       * If file is not a directory, then FileIsNotDirectory will be thrown.
       *
