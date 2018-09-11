@@ -17,6 +17,7 @@
     </properties>
 
     <modules>
+	<module>keter-backend</module>
         <module>keter-common</module>
         <module>keter-core</module>
     </modules>
