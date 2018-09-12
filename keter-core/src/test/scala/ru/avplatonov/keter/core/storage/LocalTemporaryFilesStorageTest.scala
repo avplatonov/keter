@@ -50,12 +50,14 @@ class LocalTemporaryFilesStorageTest extends FlatSpec with Matchers {
         })
     }
 
+    /** */
     private def checkHolder(filename: String, holder: Holder[Path, LocalFileDescriptor]): Unit = {
         holder.foreach(desc => {
             desc.filepath should be(tmpdir.resolve(filename))
         })
     }
 
+    /** */
     private def withTmpFile(f: LocalFileDescriptor => Unit): Unit = {
         val desc = LocalFileDescriptorParser.parse("/tmp/" + UUID.randomUUID().toString)
         LocalFilesStorage.create(desc, ignoreExisting = true)
