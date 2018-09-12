@@ -17,11 +17,18 @@
 
 package ru.avplatonov.keter.core.cluster
 
+import ru.avplatonov.keter.core.task.resource.ResourceManager
+
 /**
   * Coordinator API represents main service for workers in cluster registration in application. Coordinator
   * is responsible for workers lifecycle, working with other coordinators in cluster.
   */
 trait Coordinator {
+    /**
+      * System resources manager.
+      */
+    val resourceManager : ResourceManager
+
     /**
       * Starts coordinator on worker node. Should be called in main thread.
       *
