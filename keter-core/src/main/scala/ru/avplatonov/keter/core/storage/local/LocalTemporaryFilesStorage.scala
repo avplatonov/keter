@@ -23,15 +23,10 @@ import java.nio.file.Path
 import resource.ManagedResource
 import ru.avplatonov.keter.core.storage.FileStorage
 
-import scala.concurrent.duration.Duration
-
 /** */
 object LocalTemporaryFilesStorage {
     /** */
-    case class Settings(
-        tempDir: Path,
-        deletingTimeout: Duration
-    )
+    case class Settings(tempDir: Path)
 }
 
 /** File storage in local FS for temp files. */
@@ -58,7 +53,7 @@ class LocalTemporaryFilesStorage(settings: LocalTemporaryFilesStorage.Settings)
         LocalFilesStorage.getFilesInDirectory(tmp(desc))
 
     /** */
-    override def delete(desc: LocalFileDescriptor): Boolean = LocalFilesStorage.delete(desc)
+    override def delete(desc: LocalFileDescriptor): Boolean = LocalFilesStorage.delete(tmp(desc))
 
     /** */
     override def read(desc: LocalFileDescriptor): ManagedResource[InputStream] = LocalFilesStorage.read(tmp(desc))
@@ -67,12 +62,24 @@ class LocalTemporaryFilesStorage(settings: LocalTemporaryFilesStorage.Settings)
     override def write(desc: LocalFileDescriptor): ManagedResource[OutputStream] = LocalFilesStorage.write(tmp(desc))
 
     /**
+      * Will be fired when object is pasted to cache.
+      *
+      * @param key   key.
+      * @param value value.
+      */
+    override protected def onPut(key: Path, value: LocalFileDescriptor): LocalFileDescriptor = {
+        val tmpDesc = tmp(value)
+        LocalFilesStorage.move(value, tmpDesc, ignoreExisting = true)
+        tmpDesc
+    }
+
+    /**
       * Will be fired when object removed from cache.
       *
       * @param key   key.
       * @param value value.
       */
-    override def onRemove(key: Path, value: LocalFileDescriptor): Unit = delete(value)
+    protected override def onRemove(key: Path, value: LocalFileDescriptor): Unit = delete(value)
 
     /**
       * Remplace path to file with temp directory path.

@@ -114,6 +114,17 @@ class LocalFilesStorageTest extends FlatSpec with Matchers with BeforeAndAfter {
         })
     }
 
+    "local FS" should "delete files" in {
+        withTempPath(temp => {
+            val desc = descOf(temp.toFile)
+            LocalFilesStorage.create(desc, ignoreExisting = true)
+
+            LocalFilesStorage.exists(desc) should be(true)
+            LocalFilesStorage.delete(desc) should be(true)
+            LocalFilesStorage.exists(desc) should be(false)
+        })
+    }
+
     private def descOf(file: File): LocalFileDescriptor =
         LocalFileDescriptorParser(file.toPath.toString).get
 

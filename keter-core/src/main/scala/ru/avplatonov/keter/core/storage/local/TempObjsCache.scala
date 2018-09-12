@@ -90,28 +90,37 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
     private val objs: ConcurrentHashMap[K, (V, AtomicInteger)] = new ConcurrentHashMap[K, (V, AtomicInteger)]()
 
     /**
+      * Will be fired when object is pasted to cache.
+      *
+      * @param key key.
+      * @param value value.
+      * @return value can be mutate and new value returns.
+      */
+    protected def onPut(key: K, value: V): V
+
+    /**
       * Will be fired when object removed from cache.
       *
       * @param key key.
       * @param value value.
       */
-    def onRemove(key: K, value: V): Unit
+    protected def onRemove(key: K, value: V): Unit
 
     /** */
     override def put(key: K, obj: V): Holder[K, V] = synchronized {
         if (objs.contains(key)) {
-            val res = objs.get(key)
-            res._2.incrementAndGet()
-            return Holder(key, res._1, this)
+            throw new IllegalArgumentException("Cannot put new object with duplicate key")
         } else {
-            objs.put(key, (obj, new AtomicInteger(1)))
-            return Holder(key, obj, this)
+            val newValue = onPut(key, obj)
+            objs.put(key, (newValue, new AtomicInteger(1)))
+            return Holder(key, newValue, this)
         }
     }
 
     /** */
     override def get(key: K): Option[Holder[K, V]] = {
-        if(!objs.contains(key)) None
+        if(!objs.containsKey(key))
+            None
         else {
             val res = objs.get(key)
             res._2.incrementAndGet()
@@ -121,7 +130,7 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
     }
 
     /** */
-    override def release(key: K, obj: V): Unit = {
+    private[local] override def release(key: K, obj: V): Unit = {
         preRelease(key, obj)
         var isDeleted = false
         synchronized {
@@ -145,7 +154,7 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
       * @param key key.
       * @param value obj.
       */
-    def preRelease(key: K, value: V): Unit = { }
+    protected def preRelease(key: K, value: V): Unit = { }
 
     /**
       * Post-Release hook.
@@ -153,5 +162,5 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
       * @param key key.
       * @param value obj.
       */
-    def postRelease(key: K, value: V): Unit = { }
+    protected def postRelease(key: K, value: V): Unit = { }
 }
