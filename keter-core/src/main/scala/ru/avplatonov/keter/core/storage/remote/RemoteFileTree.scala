@@ -15,22 +15,8 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage;
+package ru.avplatonov.keter.core.storage.remote
 
-/**
- * Scheme names for paths in FSs.
- */
-public enum PathScheme {
-    /** Local file path. */
-    local("local"),
-    /** Path in Helix. */
-    cassandra("cass"),
-    /** Web url as path. */
-    url("http");
-
-    public final String name;
-
-    PathScheme(String name) {
-        this.name = name;
-    }
+trait RemoteFileTree {
+    def listOfFiles(remoteFileDescriptor: RemoteFileDescriptor): List[RemoteFileDescriptor]
 }

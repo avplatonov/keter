@@ -20,6 +20,8 @@ package ru.avplatonov.keter.core.storage.local
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
+import scala.collection.mutable
+
 /**
   * Holder for temporary object.
   *
@@ -28,7 +30,11 @@ import java.util.concurrent.atomic.AtomicInteger
   * @tparam K type of object's key.
   * @tparam V type of stored object.
   */
-case class Holder[K, V](private val key: K, private val obj: V, private val cache: TempObjsCache[K, V]) {
+case class Holder[K, V](
+    private[local] val key: K,
+    private[local] val obj: V,
+    private[local] val cache: TempObjsCache[K, V]
+) {
     /**
       * Process object in holder and release it.
       *
@@ -45,6 +51,56 @@ case class Holder[K, V](private val key: K, private val obj: V, private val cach
         }
     }
 }
+
+/** */
+object Holder {
+    private class CompoundHolder[K,V](key: Seq[K], objs: Seq[(K,V)], caches: Seq[TempObjsCache[K, V]])
+        extends Holder[Seq[K], Seq[(K, V)]](key, objs, null) {
+
+        /** */
+        override def foreach[R](f: Seq[(K, V)] => R): R = {
+            try {
+                f(obj)
+            } finally {
+                val exBuffer = mutable.Buffer[Exception]()
+                caches.zip(objs).foreach({
+                    case (internalCache, (internalKey, internalObj)) =>
+                        try {
+                            internalCache.release(internalKey, internalObj)
+                        } catch {
+                            case e: Exception =>
+                                e.printStackTrace()
+                                exBuffer += e
+                        }
+                })
+                if(exBuffer.nonEmpty)
+                    throw CompoundException(exBuffer)
+            }
+        }
+    }
+
+    /**
+      * Creates compound holder over sequence of holder states.
+      *
+      * @param holders holders.
+      * @tparam K key.
+      * @tparam V value.
+      * @return compound holder.
+      */
+    def flatten[K, V](holders: Seq[Holder[K, V]]): Holder[Seq[K], Seq[(K, V)]] = {
+        assert(holders.nonEmpty, "at least one holder should exists in holders list")
+
+        val caches = holders.map(_.cache)
+        val kvs = holders.map(h => (h.key, h.obj))
+        val ks = holders.map(_.key)
+
+        new CompoundHolder(ks, kvs, caches)
+    }
+}
+
+
+/** */
+case class CompoundException(exs: Seq[Exception]) extends RuntimeException
 
 /**
   * Interface for temporary objects that can be removed after all of holders will be released.
@@ -92,7 +148,7 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
     /**
       * Will be fired when object is pasted to cache.
       *
-      * @param key key.
+      * @param key   key.
       * @param value value.
       * @return value can be mutate and new value returns.
       */
@@ -101,7 +157,7 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
     /**
       * Will be fired when object removed from cache.
       *
-      * @param key key.
+      * @param key   key.
       * @param value value.
       */
     protected def onRemove(key: K, value: V): Unit
@@ -110,7 +166,8 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
     override def put(key: K, obj: V): Holder[K, V] = synchronized {
         if (objs.contains(key)) {
             throw new IllegalArgumentException("Cannot put new object with duplicate key")
-        } else {
+        }
+        else {
             val newValue = onPut(key, obj)
             objs.put(key, (newValue, new AtomicInteger(1)))
             return Holder(key, newValue, this)
@@ -119,7 +176,7 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
 
     /** */
     override def get(key: K): Option[Holder[K, V]] = {
-        if(!objs.containsKey(key))
+        if (!objs.containsKey(key))
             None
         else {
             val res = objs.get(key)
@@ -135,13 +192,13 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
         var isDeleted = false
         synchronized {
             val (obj, counter) = objs.get(key)
-            if(counter.decrementAndGet() == 0) {
+            if (counter.decrementAndGet() == 0) {
                 objs.remove(key)
                 isDeleted = true
             }
         }
 
-        if(isDeleted) {
+        if (isDeleted) {
             onRemove(key, obj)
         }
 
@@ -151,16 +208,16 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
     /**
       * Pre-Release hook.
       *
-      * @param key key.
+      * @param key   key.
       * @param value obj.
       */
-    protected def preRelease(key: K, value: V): Unit = { }
+    protected def preRelease(key: K, value: V): Unit = {}
 
     /**
       * Post-Release hook.
       *
-      * @param key key.
+      * @param key   key.
       * @param value obj.
       */
-    protected def postRelease(key: K, value: V): Unit = { }
+    protected def postRelease(key: K, value: V): Unit = {}
 }

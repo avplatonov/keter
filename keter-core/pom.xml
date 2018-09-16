@@ -11,6 +11,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <docker.client>8.11.7</docker.client>
         <scala.arm.version>2.0</scala.arm.version>
+        <cassandra.version>3.6.0</cassandra.version>
     </properties>
 
     <parent>
@@ -59,6 +60,12 @@
             <groupId>com.jsuereth</groupId>
             <artifactId>scala-arm_2.12</artifactId>
             <version>${scala.arm.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>${cassandra.version}</version>
         </dependency>
     </dependencies>
 </project>

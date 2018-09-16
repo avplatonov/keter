@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage;
+package ru.avplatonov.keter.core.storage.remote
 
 /**
- * Scheme names for paths in FSs.
- */
-public enum PathScheme {
-    /** Local file path. */
-    local("local"),
-    /** Path in Helix. */
-    cassandra("cass"),
-    /** Web url as path. */
-    url("http");
+  * Abstraction over KV-storage for concrete distributed storage independence.
+  *
+  * @tparam K key type.
+  * @tparam V value type.
+  */
+trait KVStorage[K, V] {
+    /** */
+    def put(key: K, value: V): Unit
 
-    public final String name;
+    /** */
+    def get(key: K): V
 
-    PathScheme(String name) {
-        this.name = name;
-    }
+    /** */
+    def contains(key: K): Boolean
+
+    /** */
+    def remove(key: K): Boolean
 }

@@ -30,7 +30,7 @@ trait DistributedFileStorageWithCache[T <: FileDescriptor] extends FileStorage[T
       * @param locPath        Local path for caching.
       * @return true if operation was successful.
       */
-    def pull(remoteDileDesc: FileDescriptor, locPath: Path): Boolean
+    def pull(remoteDileDesc: T, locPath: Path): Boolean
 
     /**
       * Flush file to distributed storage from local file system.
@@ -39,5 +39,5 @@ trait DistributedFileStorageWithCache[T <: FileDescriptor] extends FileStorage[T
       * @param remoteDileDesc Remote file descriptor.
       * @return true if operation was successful.
       */
-    def push(locPath: Path, remoteDileDesc: FileDescriptor): Boolean
+    def push(locPath: Path, remoteDileDesc: T): Boolean
 }
