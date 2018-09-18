@@ -24,7 +24,7 @@ public enum PathScheme {
     /** Local file path. */
     local("local"),
     /** Path in Helix. */
-    cassandra("cass"),
+    zookeeper("zookeeper"),
     /** Web url as path. */
     url("http");
 

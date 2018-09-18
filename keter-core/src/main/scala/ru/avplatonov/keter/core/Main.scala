@@ -17,8 +17,45 @@
 
 package ru.avplatonov.keter.core
 
+import org.apache.curator.retry.ExponentialBackoffRetry
+import ru.avplatonov.keter.core.discovery.{Node, ZookeeperDiscoveryService}
+
 object Main {
     def main(args: Array[String]): Unit = {
+        val service = ZookeeperDiscoveryService(ZookeeperDiscoveryService.Settings(
+            connectionString = "127.0.0.1:2181",
+            retryPolicy = new ExponentialBackoffRetry(1000, 3),
+            "/root/nodes"
+        ))
 
+        service.subscribe((newTopology: List[Node]) => {
+            newTopology.foreach(println)
+        })
+
+        val localNode = service.start(Node.Settings(
+            addressesWithPorts = List("127.0.0.1" -> 8080)
+        ))
+
+        println("==========")
+        startStop()
+        println("==========")
+        startStop()
+        println("==========")
+        service.stop()
+        println("==========")
+    }
+
+    def startStop(): Unit = {
+        val service = ZookeeperDiscoveryService(ZookeeperDiscoveryService.Settings(
+            connectionString = "127.0.0.1:2181",
+            retryPolicy = new ExponentialBackoffRetry(1000, 3),
+            "/root/nodes"
+        ))
+
+        service.start(Node.Settings(
+            addressesWithPorts = List("127.0.0.1" -> 8080)
+        ))
+
+        service.stop()
     }
 }

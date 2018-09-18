@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote
+package ru.avplatonov.keter.core.discovery.messaging
 
-trait RemoteFileTree {
-    def listOfFiles(remoteFileDescriptor: RemoteFileDescriptor): List[RemoteFileDescriptor]
+trait Message {
+    val id: String
+    val `type`: String
 }

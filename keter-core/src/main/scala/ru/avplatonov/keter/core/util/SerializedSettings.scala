@@ -15,24 +15,24 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote
+package ru.avplatonov.keter.core.util
 
-/**
-  * Abstraction over KV-storage for concrete distributed storage independence.
-  *
-  * @tparam K key type.
-  * @tparam V value type.
-  */
-trait KVStorage[K, V] {
-    /** */
-    def put(key: K, value: V): Unit
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
-    /** */
-    def get(key: K): V
+trait SerializedSettings extends Serializable {
+    def serialize(): Array[Byte] = {
+        val bos = new ByteArrayOutputStream()
+        val oos = new ObjectOutputStream(bos)
+        oos.writeObject(this)
+        bos.toByteArray
+    }
+}
 
-    /** */
-    def contains(key: K): Boolean
+object SerializedSettings {
+    def deserialize[T <: SerializedSettings](bytes: Array[Byte]): T = {
+        val bis = new ByteArrayInputStream(bytes)
+        val ois = new ObjectInputStream(bis)
 
-    /** */
-    def remove(key: K): Boolean
+        ois.readObject().asInstanceOf[T]
+    }
 }

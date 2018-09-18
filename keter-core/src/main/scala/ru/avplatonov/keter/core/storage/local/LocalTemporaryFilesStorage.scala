@@ -17,11 +17,7 @@
 
 package ru.avplatonov.keter.core.storage.local
 
-import java.io.{InputStream, OutputStream}
 import java.nio.file.Path
-
-import resource.ManagedResource
-import ru.avplatonov.keter.core.storage.FileStorage
 
 /** */
 object LocalTemporaryFilesStorage {
@@ -31,35 +27,7 @@ object LocalTemporaryFilesStorage {
 
 /** File storage in local FS for temp files. */
 class LocalTemporaryFilesStorage(settings: LocalTemporaryFilesStorage.Settings)
-    extends FileStorage[LocalFileDescriptor] with OnCountersTempObjsCache[Path, LocalFileDescriptor] {
-
-    /** */
-    override def exists(fileDesc: LocalFileDescriptor): Boolean = LocalFilesStorage.exists(tmp(fileDesc))
-
-    /**  */
-    override def create(currName: LocalFileDescriptor, ignoreExisting: Boolean): Boolean =
-        LocalFilesStorage.create(tmp(currName), ignoreExisting)
-
-    /** */
-    override def move(from: LocalFileDescriptor, to: LocalFileDescriptor, ignoreExisting: Boolean): Boolean =
-        LocalFilesStorage.move(tmp(from), tmp(to), ignoreExisting)
-
-    /** */
-    override def copy(from: LocalFileDescriptor, to: LocalFileDescriptor, ignoreExisting: Boolean): Boolean =
-        LocalFilesStorage.copy(tmp(from), tmp(to), ignoreExisting)
-
-    /** */
-    override def getFilesInDirectory(desc: LocalFileDescriptor): List[LocalFileDescriptor] =
-        LocalFilesStorage.getFilesInDirectory(tmp(desc))
-
-    /** */
-    override def delete(desc: LocalFileDescriptor): Boolean = LocalFilesStorage.delete(tmp(desc))
-
-    /** */
-    override def read(desc: LocalFileDescriptor): ManagedResource[InputStream] = LocalFilesStorage.read(tmp(desc))
-
-    /** */
-    override def write(desc: LocalFileDescriptor): ManagedResource[OutputStream] = LocalFilesStorage.write(tmp(desc))
+    extends OnCountersTempObjsCache[Path, LocalFileDescriptor] {
 
     /**
       * Will be fired when object is pasted to cache.
@@ -79,7 +47,7 @@ class LocalTemporaryFilesStorage(settings: LocalTemporaryFilesStorage.Settings)
       * @param key   key.
       * @param value value.
       */
-    protected override def onRemove(key: Path, value: LocalFileDescriptor): Unit = delete(value)
+    protected override def onRemove(key: Path, value: LocalFileDescriptor): Unit = LocalFilesStorage.delete(tmp(value))
 
     /**
       * Remplace path to file with temp directory path.

@@ -11,7 +11,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <docker.client>8.11.7</docker.client>
         <scala.arm.version>2.0</scala.arm.version>
-        <cassandra.version>3.6.0</cassandra.version>
+        <curator.version>4.0.1</curator.version>
     </properties>
 
     <parent>
@@ -63,9 +63,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>${cassandra.version}</version>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>${curator.version}</version>
         </dependency>
     </dependencies>
 </project>
