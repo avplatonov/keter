@@ -19,7 +19,7 @@ package ru.avplatonov.keter.core.discovery
 
 import java.io.{InputStream, OutputStream}
 
-import ru.avplatonov.keter.core.discovery.messaging.Message
+import ru.avplatonov.keter.core.discovery.messaging.{Message, NettyServer}
 import ru.avplatonov.keter.core.util.SerializedSettings
 
 /**
@@ -30,7 +30,7 @@ trait Node {
     val isLocal: Boolean
     val id: NodeId
 
-    def addresses(): List[(String, Int)] = settings.addressesWithPorts
+    def addresses(): List[String] = settings.addresses
 
     def sendMsg(header: Message, bodyWriter: OutputStream => Unit)
 
@@ -40,13 +40,20 @@ trait Node {
 case class NodeId(value: Long)
 
 object Node {
-    case class Settings(addressesWithPorts: List[(String, Int)]) extends SerializedSettings
+    case class Settings(addresses: List[String], listenedPort: Int) extends SerializedSettings
 }
 
 case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
+    private val netty = NettyServer(settings.listenedPort, processMsg)
+
     override val isLocal: Boolean = true
 
-    override def sendMsg(header: Message, bodyWriter: OutputStream => Unit): Unit = ???
+    override def sendMsg(header: Message, bodyWriter: OutputStream => Unit): Unit =
+        throw new NotImplementedError("Local node doesn't support sending to self")
+
+    def start(): Unit = netty.run()
+
+    def stop(): Unit = netty.stop()
 
     override def processMsg(header: Message, bodyReader: InputStream => Unit): Unit = ???
 }
@@ -56,5 +63,7 @@ case class RemoteNode(id: NodeId, settings: Node.Settings) extends Node {
 
     override def sendMsg(header: Message, bodyWriter: OutputStream => Unit): Unit = ???
 
-    override def processMsg(header: Message, bodyReader: InputStream => Unit): Unit = ???
+    override def processMsg(header: Message, bodyReader: InputStream => Unit): Unit =
+        throw new NotImplementedError("Input message should be processed in other system in its local node.")
+
 }

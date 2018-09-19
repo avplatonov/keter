@@ -12,6 +12,7 @@
         <docker.client>8.11.7</docker.client>
         <scala.arm.version>2.0</scala.arm.version>
         <curator.version>4.0.1</curator.version>
+        <netty.version>4.1.29.Final</netty.version>
     </properties>
 
     <parent>
@@ -66,6 +67,12 @@
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
             <version>${curator.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
         </dependency>
     </dependencies>
 </project>

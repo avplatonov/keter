@@ -93,6 +93,7 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
                 nodes.put(localNode.id, localNode)
                 discoverNodes()
                 watchRoot()
+                localNode.start()
                 started.set(true)
             }
 
@@ -172,14 +173,19 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
       * Stop service.
       */
     override def stop(): Unit = synchronized {
-        if (zk.getState == CuratorFrameworkState.STARTED) {
-            zk.close()
+        try {
+            if (zk.getState == CuratorFrameworkState.STARTED) {
+                zk.close()
+            }
+
+            listenersPool.shutdown()
+            listenersPool.awaitTermination(1, TimeUnit.HOURS)
+
+            if (started.get() && localNode != null)
+                localNode.stop()
+        } finally {
+            started.set(false)
         }
-
-        listenersPool.shutdown()
-        listenersPool.awaitTermination(1, TimeUnit.HOURS)
-
-        started.set(false)
     }
 
     /**
