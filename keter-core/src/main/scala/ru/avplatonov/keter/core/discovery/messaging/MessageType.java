@@ -15,35 +15,8 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.discovery.messaging
+package ru.avplatonov.keter.core.discovery.messaging;
 
-import java.util.UUID
-
-import io.netty.buffer.ByteBuf
-
-object Message {
-    def read(messageType: MessageType, buf: ByteBuf): Message = messageType match {
-        case MessageType.HELLO_MSG =>
-            HelloMessage()
-    }
-
-    def serialize(msg: Message): Array[Byte] = msg.`type` match {
-        case MessageType.HELLO_MSG =>
-            Array()
-            //skip wiring
-    }
-
-    def sizeof(messageType: MessageType): Int = messageType match {
-        case MessageType.HELLO_MSG => 0
-    }
-}
-
-trait Message {
-    val `type`: MessageType
-    val id: String
-}
-
-case class HelloMessage() extends Message {
-    override val `type`: MessageType = MessageType.HELLO_MSG
-    override val id: String = UUID.randomUUID().toString
+public enum MessageType {
+    HELLO_MSG
 }

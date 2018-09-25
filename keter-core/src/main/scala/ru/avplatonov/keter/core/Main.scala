@@ -17,7 +17,10 @@
 
 package ru.avplatonov.keter.core
 
+import java.util.concurrent.TimeUnit
+
 import org.apache.curator.retry.ExponentialBackoffRetry
+import ru.avplatonov.keter.core.discovery.messaging.{Client, HelloMessage, MessageType}
 import ru.avplatonov.keter.core.discovery.{Node, ZookeeperDiscoveryService}
 
 object Main {
@@ -32,30 +35,16 @@ object Main {
             newTopology.foreach(println)
         })
 
-        val localNode = service.start(Node.Settings(
-            addressesWithPorts = List("127.0.0.1" -> 8080)
-        ))
+        service.start(Node.Settings(List("127.0.0.1"), 8081))
+        service.getLocalNode().foreach(localNode => {
+            localNode.registerProcessor(MessageType.HELLO_MSG, msg => {
+                println("Hello message")
+            })
+        })
 
-        println("==========")
-        startStop()
-        println("==========")
-        startStop()
-        println("==========")
-        service.stop()
-        println("==========")
-    }
-
-    def startStop(): Unit = {
-        val service = ZookeeperDiscoveryService(ZookeeperDiscoveryService.Settings(
-            connectionString = "127.0.0.1:2181",
-            retryPolicy = new ExponentialBackoffRetry(1000, 3),
-            "/root/nodes"
-        ))
-
-        service.start(Node.Settings(
-            addressesWithPorts = List("127.0.0.1" -> 8080)
-        ))
-
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+        new Client().send(("127.0.0.1", 8081), HelloMessage())
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
         service.stop()
     }
 }

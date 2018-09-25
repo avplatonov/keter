@@ -17,33 +17,18 @@
 
 package ru.avplatonov.keter.core.discovery.messaging
 
-import java.util.UUID
+import java.io.DataOutputStream
+import java.net.Socket
 
-import io.netty.buffer.ByteBuf
+class Client() {
+    def send(to: (String, Int), message: Message): Unit = {
+        resource.managed(new Socket(to._1, to._2))
+            .flatMap(s => resource.managed(s.getOutputStream))
+            .flatMap(oos => resource.managed(new DataOutputStream(oos))) foreach { os =>
 
-object Message {
-    def read(messageType: MessageType, buf: ByteBuf): Message = messageType match {
-        case MessageType.HELLO_MSG =>
-            HelloMessage()
+            os.writeInt(message.`type`.ordinal())
+            os.write(Message.serialize(message))
+            os.flush()
+        }
     }
-
-    def serialize(msg: Message): Array[Byte] = msg.`type` match {
-        case MessageType.HELLO_MSG =>
-            Array()
-            //skip wiring
-    }
-
-    def sizeof(messageType: MessageType): Int = messageType match {
-        case MessageType.HELLO_MSG => 0
-    }
-}
-
-trait Message {
-    val `type`: MessageType
-    val id: String
-}
-
-case class HelloMessage() extends Message {
-    override val `type`: MessageType = MessageType.HELLO_MSG
-    override val id: String = UUID.randomUUID().toString
 }

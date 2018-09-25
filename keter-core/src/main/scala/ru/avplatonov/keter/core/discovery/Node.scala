@@ -17,10 +17,12 @@
 
 package ru.avplatonov.keter.core.discovery
 
-import java.io.{InputStream, OutputStream}
+import java.util.concurrent.ConcurrentHashMap
 
-import ru.avplatonov.keter.core.discovery.messaging.{Message, NettyServer}
+import ru.avplatonov.keter.core.discovery.messaging.{Client, Message, MessageType, NettyServer}
 import ru.avplatonov.keter.core.util.SerializedSettings
+
+import scala.collection.JavaConverters._
 
 /**
   * Remote node.
@@ -32,9 +34,9 @@ trait Node {
 
     def addresses(): List[String] = settings.addresses
 
-    def sendMsg(header: Message, bodyWriter: OutputStream => Unit)
+    def sendMsg(header: Message)
 
-    def processMsg(header: Message, bodyReader: InputStream => Unit)
+    def processMsg(header: Message)
 }
 
 case class NodeId(value: Long)
@@ -46,24 +48,35 @@ object Node {
 case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
     private val netty = NettyServer(settings.listenedPort, processMsg)
 
+    private val msgProcessors = new ConcurrentHashMap[MessageType, Message => Unit]().asScala
+
     override val isLocal: Boolean = true
 
-    override def sendMsg(header: Message, bodyWriter: OutputStream => Unit): Unit =
+    override def sendMsg(header: Message): Unit =
         throw new NotImplementedError("Local node doesn't support sending to self")
 
     def start(): Unit = netty.run()
 
-    def stop(): Unit = netty.stop()
+    def stop(): Unit = netty.stop(force = false)
 
-    override def processMsg(header: Message, bodyReader: InputStream => Unit): Unit = ???
+    override def processMsg(message: Message): Unit =
+        msgProcessors.getOrElse(
+            message.`type`,
+            throw new RuntimeException(s"Cannot find registered processor for message with type '${message.`type`}'")
+        ).apply(message)
+
+    def registerProcessor(msgType: MessageType, proc: Message => Unit): Unit =
+        msgProcessors.put(msgType, proc)
 }
 
 case class RemoteNode(id: NodeId, settings: Node.Settings) extends Node {
+    private val client = new Client()
+
     override val isLocal: Boolean = false
 
-    override def sendMsg(header: Message, bodyWriter: OutputStream => Unit): Unit = ???
+    override def sendMsg(message: Message): Unit = client.send((settings.addresses.head, settings.listenedPort), message)
 
-    override def processMsg(header: Message, bodyReader: InputStream => Unit): Unit =
+    override def processMsg(message: Message): Unit =
         throw new NotImplementedError("Input message should be processed in other system in its local node.")
 
 }
