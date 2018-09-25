@@ -18,7 +18,8 @@
 package ru.avplatonov.keter.core.discovery.messaging
 
 import java.util
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.{CountDownLatch, Executors, TimeUnit}
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import io.netty.bootstrap.ServerBootstrap
@@ -46,6 +47,10 @@ case class NettyServer(port: Int,
     @volatile private var wasStopped = false
     @volatile private var channel: Channel = null
 
+    val startingLatch = new CountDownLatch(1)
+    val serverError = new AtomicReference[Exception]()
+
+
     private val msgTypeMapping = MessageType.values().map(x => x.ordinal() -> x).toMap
 
     private val serverPool = Executors.newSingleThreadExecutor(
@@ -56,43 +61,53 @@ case class NettyServer(port: Int,
     )
 
     def run(): Unit = {
-        serverPool.submit(new Runnable {
-            override def run(): Unit = {
-                val bossGroup = new NioEventLoopGroup(settings.bossPoolSize, //incoming connections accepting thread-pool
-                    new ThreadFactoryBuilder()
-                        .setNameFormat("nio-server-boss-%d")
-                        .setUncaughtExceptionHandler(uncaughtExceptionHandler)
-                        .build())
-                val workerGroup = new NioEventLoopGroup(settings.workerPoolSize, //messages after accepting connection processing pool
-                    new ThreadFactoryBuilder()
-                        .setNameFormat("nio-server-worker-%d")
-                        .setUncaughtExceptionHandler(uncaughtExceptionHandler)
-                        .build())
+        if(!wasStarted) {
+            serverPool.submit(new Runnable {
+                override def run(): Unit = {
+                    val bossGroup = new NioEventLoopGroup(settings.bossPoolSize, //incoming connections accepting thread-pool
+                        new ThreadFactoryBuilder()
+                            .setNameFormat("nio-server-boss-%d")
+                            .setUncaughtExceptionHandler(uncaughtExceptionHandler)
+                            .build())
+                    val workerGroup = new NioEventLoopGroup(settings.workerPoolSize, //messages after accepting connection processing pool
+                        new ThreadFactoryBuilder()
+                            .setNameFormat("nio-server-worker-%d")
+                            .setUncaughtExceptionHandler(uncaughtExceptionHandler)
+                            .build())
 
-                try {
-                    val bootstrap = new ServerBootstrap()
-                    bootstrap.group(bossGroup, workerGroup)
-                        .channel(classOf[NioServerSocketChannel])
-                        .childHandler(new ChannelInitializer[SocketChannel] {
-                            override def initChannel(c: SocketChannel): Unit = {
-                                c.pipeline().addLast(new MessagesDecoder(), new ReceiveMessageHandler())
-                            }
-                        })
-                        .option(ChannelOption.SO_BACKLOG, Int.box(128))
-                        .childOption(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
+                    try {
+                        val bootstrap = new ServerBootstrap()
+                        bootstrap.group(bossGroup, workerGroup)
+                            .channel(classOf[NioServerSocketChannel])
+                            .childHandler(new ChannelInitializer[SocketChannel] {
+                                override def initChannel(c: SocketChannel): Unit = {
+                                    c.pipeline().addLast(new MessagesDecoder(), new ReceiveMessageHandler())
+                                }
+                            })
+                            .option(ChannelOption.SO_BACKLOG, Int.box(128))
+                            .childOption(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
 
-                    val channelFuture = bootstrap.bind(port).sync()
-                    val channel = channelFuture.channel()
-                    init(channel)
-                    channel.closeFuture().sync()
-                } catch {
-                    case e => e.printStackTrace()
-                } finally {
-                    bossGroup.shutdownGracefully()
-                    workerGroup.shutdownGracefully()
+                        val channelFuture = bootstrap.bind(port).sync()
+                        val channel = channelFuture.channel()
+                        init(channel)
+                        startingLatch.countDown()
+                        channel.closeFuture().sync()
+                    } catch {
+                        case e: Exception =>
+                            serverError.set(e)
+                    } finally {
+                        bossGroup.shutdownGracefully()
+                        workerGroup.shutdownGracefully()
+                        startingLatch.countDown()
+                        wasStopped = true
+                    }
                 }
-            }
-        })
+            })
+
+            startingLatch.await()
+            if(serverError.get() != null)
+                throw serverError.get()
+        }
     }
 
     def stop(force: Boolean): Unit = synchronized {

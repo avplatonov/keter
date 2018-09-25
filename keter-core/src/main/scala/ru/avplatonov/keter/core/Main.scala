@@ -43,7 +43,12 @@ object Main {
         })
 
         Thread.sleep(TimeUnit.SECONDS.toMillis(1))
-        new Client().send(("127.0.0.1", 8081), HelloMessage())
+        var i = 0
+        val client = new Client(Client.Settings(serverHost = "127.0.0.1", serverPort = 8081))
+        while(i < 10) {
+            client.send(HelloMessage())
+            i = i + 1
+        }
         Thread.sleep(TimeUnit.SECONDS.toMillis(1))
         service.stop()
     }

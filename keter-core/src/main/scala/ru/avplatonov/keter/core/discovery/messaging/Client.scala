@@ -18,17 +18,39 @@
 package ru.avplatonov.keter.core.discovery.messaging
 
 import java.io.DataOutputStream
-import java.net.Socket
+import java.net.{Socket, SocketTimeoutException}
 
-class Client() {
-    def send(to: (String, Int), message: Message): Unit = {
-        resource.managed(new Socket(to._1, to._2))
-            .flatMap(s => resource.managed(s.getOutputStream))
-            .flatMap(oos => resource.managed(new DataOutputStream(oos))) foreach { os =>
+import scala.concurrent.duration.{Duration, _}
 
-            os.writeInt(message.`type`.ordinal())
-            os.write(Message.serialize(message))
-            os.flush()
+object Client {
+    case class Settings(
+        serverHost: String,
+        serverPort: Int,
+        sendTimeout: Duration = 30 seconds,
+        timeoutHandler: SocketTimeoutException => Unit = _.printStackTrace()
+    )
+}
+
+case class SendingDataException(e: Exception)
+    extends RuntimeException("Sending data from client to server error", e)
+
+class Client(settings: Client.Settings) {
+    def send(message: Message): Unit = {
+        try {
+            resource.managed(socket())
+                .flatMap(s => resource.managed(s.getOutputStream))
+                .flatMap(oos => resource.managed(new DataOutputStream(oos))) foreach { os =>
+
+                os.writeInt(message.`type`.ordinal())
+                os.write(Message.serialize(message))
+                os.flush()
+            }
         }
+    }
+
+    private def socket(): Socket = {
+        val socket = new Socket(settings.serverHost, settings.serverPort)
+        socket.setSoTimeout(settings.sendTimeout.toMillis.toInt)
+        socket
     }
 }

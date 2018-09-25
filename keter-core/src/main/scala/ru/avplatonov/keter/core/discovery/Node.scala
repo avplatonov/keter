@@ -70,11 +70,14 @@ case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
 }
 
 case class RemoteNode(id: NodeId, settings: Node.Settings) extends Node {
-    private val client = new Client()
+    private val client = new Client(Client.Settings(
+        serverHost = settings.addresses.head,
+        serverPort = settings.listenedPort)
+    )
 
     override val isLocal: Boolean = false
 
-    override def sendMsg(message: Message): Unit = client.send((settings.addresses.head, settings.listenedPort), message)
+    override def sendMsg(message: Message): Unit = client.send(message)
 
     override def processMsg(message: Message): Unit =
         throw new NotImplementedError("Input message should be processed in other system in its local node.")
