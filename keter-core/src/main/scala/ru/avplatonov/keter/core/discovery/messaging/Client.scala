@@ -17,7 +17,7 @@
 
 package ru.avplatonov.keter.core.discovery.messaging
 
-import java.io.DataOutputStream
+import java.io.{DataOutputStream, IOException}
 import java.net.{Socket, SocketTimeoutException}
 
 import scala.concurrent.duration.{Duration, _}
@@ -45,6 +45,9 @@ class Client(settings: Client.Settings) {
                 os.write(Message.serialize(message))
                 os.flush()
             }
+        } catch {
+            case e: IOException =>
+                throw SendingDataException(e)
         }
     }
 

@@ -110,7 +110,7 @@ case class NettyServer(port: Int,
         }
     }
 
-    def stop(force: Boolean): Unit = synchronized {
+    def stop(force: Boolean = false): Unit = synchronized {
         if (!wasStopped && channel != null) {
             channel.close()
             if(force) serverPool.shutdownNow()
