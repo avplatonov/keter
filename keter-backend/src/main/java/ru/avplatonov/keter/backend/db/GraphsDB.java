@@ -1,7 +1,7 @@
-package ru.avplatonov.keter.keterbackend.db;
+package ru.avplatonov.keter.backend.db;
 
 import org.springframework.stereotype.Component;
-import ru.avplatonov.keter.keterbackend.initialize.NodeTemplate;
+import ru.avplatonov.keter.backend.initialize.NodeTemplate;
 
 import java.util.ArrayList;
 import java.util.List;

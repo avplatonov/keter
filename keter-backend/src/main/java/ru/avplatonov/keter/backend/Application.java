@@ -1,4 +1,4 @@
-package ru.avplatonov.keter.keterbackend;
+package ru.avplatonov.keter.backend;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
-import ru.avplatonov.keter.keterbackend.db.GraphsDB;
-import ru.avplatonov.keter.keterbackend.db.NodesDB;
+import ru.avplatonov.keter.backend.db.GraphsDB;
+import ru.avplatonov.keter.backend.db.NodesDB;
 
 import java.util.Arrays;
 

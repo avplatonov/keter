@@ -1,4 +1,4 @@
-package ru.avplatonov.keter.keterbackend.controllers.management.create;
+package ru.avplatonov.keter.backend.controllers.management.create;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ru.avplatonov.keter.keterbackend.initialize.GraphTemplate;
-import ru.avplatonov.keter.keterbackend.initialize.NodeTemplate;
+import ru.avplatonov.keter.backend.initialize.GraphTemplate;
+import ru.avplatonov.keter.backend.initialize.NodeTemplate;
 
 import java.io.IOException;
 import java.util.*;
 
-import static ru.avplatonov.keter.keterbackend.Application.graphsDB;
-import static ru.avplatonov.keter.keterbackend.Application.nodesDB;
+import static ru.avplatonov.keter.backend.Application.graphsDB;
+import static ru.avplatonov.keter.backend.Application.nodesDB;
 
 @RestController
 @EnableAutoConfiguration
@@ -21,7 +21,9 @@ public class CreateGraph {
 
     @RequestMapping(value = "/create/graphs",
             headers = {"Content-type=application/json"})
-    public String service(@RequestBody GraphTemplate graphTemplate) throws IOException {
+    public String service(
+            @RequestBody GraphTemplate graphTemplate
+    ) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         //listOfNodes.add(graphTemplate);
         if(createGraph(graphTemplate).isEmpty())

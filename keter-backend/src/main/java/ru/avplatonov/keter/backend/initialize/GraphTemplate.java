@@ -1,4 +1,4 @@
-package ru.avplatonov.keter.keterbackend.initialize;
+package ru.avplatonov.keter.backend.initialize;
 
 import java.util.ArrayList;
 import java.util.List;

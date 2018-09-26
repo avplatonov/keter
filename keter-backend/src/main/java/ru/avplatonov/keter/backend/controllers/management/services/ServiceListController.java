@@ -1,4 +1,4 @@
-package ru.avplatonov.keter.keterbackend.controllers.management.services;
+package ru.avplatonov.keter.backend.controllers.management.services;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.GetMapping;
