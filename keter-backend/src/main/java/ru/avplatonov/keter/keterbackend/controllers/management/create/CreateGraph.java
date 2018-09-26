@@ -1,17 +1,17 @@
 package ru.avplatonov.keter.keterbackend.controllers.management.create;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.avplatonov.keter.keterbackend.initialize.NameNodesToGraph;
+import ru.avplatonov.keter.keterbackend.initialize.Graph;
 import ru.avplatonov.keter.keterbackend.initialize.Node;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static ru.avplatonov.keter.keterbackend.controllers.management.create.CreateNode.listOfNodes;
 
@@ -23,22 +23,22 @@ public class CreateGraph {
 
     @RequestMapping(value = "/create/graphs",
             headers = {"Content-type=application/json"})
-    public String service(@RequestBody NameNodesToGraph nameNodesToGraph) throws IOException {
+    public String service(@RequestBody Graph graph) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        //listOfNodes.add(nameNodesToGraph);
-        if(createGraph(nameNodesToGraph).isEmpty())
+        //listOfNodes.add(graph);
+        if(createGraph(graph).isEmpty())
             return "Name of node is not found.";
-        return "listOfGraphs.size=" + listOfGraphs.size() + "\n" + mapper.writeValueAsString(createGraph(nameNodesToGraph));
+        return "listOfGraphs.size=" + listOfGraphs.size() + "\n" + mapper.writeValueAsString(createGraph(graph));
     }
 
-    private List<Node> createGraph(NameNodesToGraph nameNodesToGraph) {
+    private List<Node> createGraph(Graph uuidNodesToGraph) {
         List<Node> listOfGraphsLocal = new ArrayList<>();
-        for (String graph : nameNodesToGraph.listOfNameNodes) {
+        for (UUID graphUuid : uuidNodesToGraph.getListOfUuidNodes()) {
             boolean containsNode = false;
-            for (Node node : listOfNodes) {
-                if(graph.equals(node.getName())){
+            for (Node nodeUuid : listOfNodes) {
+                if(graphUuid.equals(nodeUuid.getUuid())){
                     containsNode = true;
-                    listOfGraphsLocal.add(node);
+                    listOfGraphsLocal.add(nodeUuid);
                 }
             }
             if(!containsNode)

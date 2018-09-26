@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class Node {
 
-    private UUID uuid = UUID.randomUUID();
+    private UUID uuidNode = UUID.randomUUID();
     private String name = "KETER";
     private String description = "KETER";
     private List<String> tags = null;
@@ -16,11 +16,7 @@ public class Node {
     private List<List<String>> files = null;
 
     public UUID getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+        return uuidNode;
     }
 
     public String getName() {

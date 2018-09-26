@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @EnableAutoConfiguration
-public class GraphController {
+public class GraphListController {
 
     @RequestMapping(value = "/graphs/{graphSearch}")
     public String listOfGraphs(
