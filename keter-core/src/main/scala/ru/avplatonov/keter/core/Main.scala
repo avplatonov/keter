@@ -35,7 +35,7 @@ object Main {
             newTopology.foreach(println)
         })
 
-        service.start(Node.Settings(List("127.0.0.1"), 8081))
+        service.start(Node.Settings("127.0.0.1", 8081))
         service.getLocalNode().foreach(localNode => {
             localNode.registerProcessor(MessageType.HELLO_MSG, msg => {
                 println("Hello message")

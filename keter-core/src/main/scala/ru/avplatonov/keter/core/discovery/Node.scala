@@ -19,7 +19,7 @@ package ru.avplatonov.keter.core.discovery
 
 import java.util.concurrent.ConcurrentHashMap
 
-import ru.avplatonov.keter.core.discovery.messaging.{Client, Message, MessageType, NettyServer}
+import ru.avplatonov.keter.core.discovery.messaging.{Client, Message, MessageType, NettyServerMngr}
 import ru.avplatonov.keter.core.util.SerializedSettings
 
 import scala.collection.JavaConverters._
@@ -32,8 +32,6 @@ trait Node {
     val isLocal: Boolean
     val id: NodeId
 
-    def addresses(): List[String] = settings.addresses
-
     def sendMsg(header: Message)
 
     def processMsg(header: Message)
@@ -42,11 +40,11 @@ trait Node {
 case class NodeId(value: Long)
 
 object Node {
-    case class Settings(addresses: List[String], listenedPort: Int) extends SerializedSettings
+    case class Settings(address: String, listenedPort: Int) extends SerializedSettings
 }
 
 case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
-    private val netty = NettyServer(settings.listenedPort, processMsg)
+    private val netty = NettyServerMngr(settings.listenedPort, processMsg)
 
     private val msgProcessors = new ConcurrentHashMap[MessageType, Message => Unit]().asScala
 
@@ -57,7 +55,7 @@ case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
 
     def start(): Unit = netty.run()
 
-    def stop(): Unit = netty.stop(force = false)
+    def stop(): Unit = netty.stop()
 
     override def processMsg(message: Message): Unit =
         msgProcessors.getOrElse(
@@ -71,7 +69,7 @@ case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
 
 case class RemoteNode(id: NodeId, settings: Node.Settings) extends Node {
     private val client = new Client(Client.Settings(
-        serverHost = settings.addresses.head,
+        serverHost = settings.address,
         serverPort = settings.listenedPort)
     )
 

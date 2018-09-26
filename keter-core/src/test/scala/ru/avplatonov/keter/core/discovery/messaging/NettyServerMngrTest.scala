@@ -7,7 +7,7 @@ import org.scalatest.concurrent.Timeouts._
 import org.scalatest.time.SpanSugar._
 import org.scalatest.{FlatSpec, Matchers}
 
-class NettyServerTest extends FlatSpec with Matchers {
+class NettyServerMngrTest extends FlatSpec with Matchers {
     "server" should "started in non-blocking way" in {
         failAfter(5 seconds) {
             val netty = server()
@@ -54,5 +54,5 @@ class NettyServerTest extends FlatSpec with Matchers {
     }
 
     private def server(
-        messageProcessor: Message => Unit = m => {}): NettyServer = new NettyServer(8081, messageProcessor)
+        messageProcessor: Message => Unit = m => {}): NettyServerMngr = new NettyServerMngr(8081, messageProcessor)
 }

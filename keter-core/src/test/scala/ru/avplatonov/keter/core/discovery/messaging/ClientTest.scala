@@ -21,7 +21,7 @@ class ClientTest extends FlatSpec with Matchers {
 
     "client" should "send data to server" in {
         val latch = new CountDownLatch(1)
-        val server = new NettyServer(8081, m => if(m.isInstanceOf[HelloMessage]) latch.countDown())
+        val server = new NettyServerMngr(8081, m => if(m.isInstanceOf[HelloMessage]) latch.countDown())
         server.run()
         try {
             client.send(HelloMessage())

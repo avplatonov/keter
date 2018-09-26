@@ -34,6 +34,8 @@ object ZookeeperDiscoveryService {
     case class Settings(connectionString: String, retryPolicy: RetryPolicy, discoveryRoot: String)
 }
 
+//todo: enents need to be classified - new node, remove node etc.
+//todo: we need to periodically check manually of cluster state
 case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Settings) extends DiscoveryService {
     /** */
     val serviceId: UUID = UUID.randomUUID()
@@ -88,12 +90,11 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         try {
             if (!started.get()) {
                 zk.start()
-                val nodeId = register(localNodeSettings)
-                localNode = createLocalNode(nodeId, localNodeSettings)
+                localNode = createLocalNode(localNodeSettings)
                 nodes.put(localNode.id, localNode)
-                discoverNodes()
-                watchRoot()
                 localNode.start()
+                watchRoot()
+                discoverNodes()
                 started.set(true)
             }
 
@@ -106,14 +107,18 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         }
     }
 
-    private def register(localNodeSettings: Node.Settings): NodeId = toNodeId {
-        zk.create()
-            .creatingParentsIfNeeded()
-            .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-            .forPath(
-                nodesPath,
-                localNodeSettings.serialize()
-            )
+    private def createLocalNode(nodeSettings: Node.Settings): LocalNode = {
+        val nodeID = toNodeId {
+            zk.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                .forPath(
+                    nodesPath,
+                    nodeSettings.serialize()
+                )
+        }
+
+        LocalNode(nodeID, nodeSettings)
     }
 
     private def watchRoot(): Unit = {
@@ -160,8 +165,6 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         else
             createRemoteNode(nodeId, nodeAddresses)
     }
-
-    private def createLocalNode(nodeID: NodeId, nodeSettings: Node.Settings): LocalNode = LocalNode(nodeID, nodeSettings)
 
     private def createRemoteNode(nodeID: NodeId, settings: Node.Settings): Node = RemoteNode(nodeID, settings)
 
