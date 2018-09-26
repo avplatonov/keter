@@ -2,9 +2,11 @@ package ru.avplatonov.keter.keterbackend.initialize;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Node {
-    private int id = 0;
+
+    private UUID uuid = UUID.randomUUID();
     private String name = "KETER";
     private String description = "KETER";
     private List<String> tags = null;
@@ -13,12 +15,12 @@ public class Node {
     private List<List<String>> hardware = null;
     private List<List<String>> files = null;
 
-    public int getId() {
-        return id;
+    public UUID getUuid() {
+        return uuid;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
     public String getName() {
@@ -82,8 +84,7 @@ public class Node {
 
     }
 
-    public Node(int id, String name, String description, List<String> tags, String script, String parameters, List<List<String>> hardware, List<List<String>> files) {
-        this.id = id;
+    public Node(String name, String description, List<String> tags, String script, String parameters, List<List<String>> hardware, List<List<String>> files) {
         this.name = name;
         this.description = description;
         this.tags = tags;

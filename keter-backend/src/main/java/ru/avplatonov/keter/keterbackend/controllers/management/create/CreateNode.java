@@ -20,20 +20,8 @@ public class CreateNode {
     @RequestMapping(value = "/create/nodes",
             headers = {"Content-type=application/json"})
     public String service(@RequestBody Node node) throws IOException {
-        if(alredyCraeted(node))
-            return "Name node \"" + node.getName() + "\" already created.";
-
         ObjectMapper mapper = new ObjectMapper();
         listOfNodes.add(node);
         return "listOfNode.size=" + listOfNodes.size() + "\n" + mapper.writeValueAsString(node) ;
-    }
-
-    //ToDo: or used map?
-    private boolean alredyCraeted(Node node){
-        for (Node alreadyCreateNode:listOfNodes) {
-            if(alreadyCreateNode.getName().equals(node.getName()))
-                return true;
-        }
-        return false;
     }
 }
