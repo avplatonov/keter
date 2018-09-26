@@ -4,20 +4,30 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import ru.avplatonov.keter.keterbackend.db.GraphsDB;
+import ru.avplatonov.keter.keterbackend.db.NodesDB;
 
 import java.util.Arrays;
 
 @SpringBootApplication
 public class Application {
 
+    public static ApplicationContext context;
+    public static GraphsDB graphsDB;
+    public static NodesDB nodesDB;
+
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
+        context = new AnnotationConfigApplicationContext(GraphsDB.class, NodesDB.class);
+        graphsDB = context.getBean(GraphsDB.class);
+        nodesDB = context.getBean(NodesDB.class);
+        SpringApplication.run(Application.class, args);
+    }
 
     @Configuration
     static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
