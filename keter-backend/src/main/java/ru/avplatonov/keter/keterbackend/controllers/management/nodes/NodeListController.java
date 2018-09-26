@@ -13,7 +13,12 @@ import java.util.List;
 
 @RestController
 @EnableAutoConfiguration
-public class NodeController {
+public class NodeListController {
+
+    @RequestMapping(value = "/nodes/all")
+    public List<Node> service() throws JsonProcessingException {
+        return CreateNode.listOfNodes;
+    }
 
     @RequestMapping(value = "/nodes/{nodeSearch}")
     public String service(@PathVariable("nodeSearch") @NonNull final String value) throws JsonProcessingException {
