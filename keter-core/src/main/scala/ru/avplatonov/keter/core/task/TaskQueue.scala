@@ -43,7 +43,7 @@ trait TaskQueue {
       * Takes a description of task dependencies and task descriptions, creates all tasks in queue,
       * asssign unique id for them and sets dependencies on this unique ids.
       *
-      * @param taskGraph task graph.
+      * @param taskGraph task graphTemplate.
       * @return true if operation was successful.
       */
     def createTasks(taskGraph: Graph): Boolean

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Graph {
+public class GraphTemplate {
 
     private UUID uuidGraph = UUID.randomUUID();
     private List<UUID> listOfUuidNodes = new ArrayList<>();
@@ -25,11 +25,11 @@ public class Graph {
         this.listOfUuidNodes = listOfNodes;
     }
 
-    public Graph(){
+    public GraphTemplate(){
 
     }
 
-    public Graph(List<UUID> listOfNodes) {
+    public GraphTemplate(List<UUID> listOfNodes) {
         this.listOfUuidNodes = listOfNodes;
     }
 }

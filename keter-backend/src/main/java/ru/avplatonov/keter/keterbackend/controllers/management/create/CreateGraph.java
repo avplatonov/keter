@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ru.avplatonov.keter.keterbackend.initialize.Graph;
-import ru.avplatonov.keter.keterbackend.initialize.Node;
+import ru.avplatonov.keter.keterbackend.initialize.GraphTemplate;
+import ru.avplatonov.keter.keterbackend.initialize.NodeTemplate;
 
 import java.io.IOException;
 import java.util.*;
@@ -21,22 +21,22 @@ public class CreateGraph {
 
     @RequestMapping(value = "/create/graphs",
             headers = {"Content-type=application/json"})
-    public String service(@RequestBody Graph graph) throws IOException {
+    public String service(@RequestBody GraphTemplate graphTemplate) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        //listOfNodes.add(graph);
-        if(createGraph(graph).isEmpty())
+        //listOfNodes.add(graphTemplate);
+        if(createGraph(graphTemplate).isEmpty())
             return "Uuid of node is not found.";
-        return "listOfGraphs.size=" + graphsDB.getListOfGraphs().size() + "\n" + mapper.writeValueAsString(createGraph(graph));
+        return "listOfGraphs.size=" + graphsDB.getListOfGraphs().size() + "\n" + mapper.writeValueAsString(createGraph(graphTemplate));
     }
 
-    private Set<Node> createGraph(Graph uuidNodesToGraph) {
-        Set<Node> listOfGraphsLocal = new HashSet<>();
-        for (UUID graphUuid : uuidNodesToGraph.getListOfUuidNodes()) {
+    private Set<NodeTemplate> createGraph(GraphTemplate uuidNodesToGraphTemplate) {
+        Set<NodeTemplate> listOfGraphsLocal = new HashSet<>();
+        for (UUID graphUuid : uuidNodesToGraphTemplate.getListOfUuidNodes()) {
             boolean containsNode = false;
-            for (Node nodeUuid : nodesDB.getListOfNodes()) {
-                if(graphUuid.equals(nodeUuid.getUuid())){
+            for (NodeTemplate nodeTemplateUuid : nodesDB.getListOfNodeTemplates()) {
+                if(graphUuid.equals(nodeTemplateUuid.getUuid())){
                     containsNode = true;
-                    listOfGraphsLocal.add(nodeUuid);
+                    listOfGraphsLocal.add(nodeTemplateUuid);
                 }
             }
             if(!containsNode)

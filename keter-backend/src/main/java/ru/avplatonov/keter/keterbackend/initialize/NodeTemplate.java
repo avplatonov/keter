@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class Node {
+public class NodeTemplate {
 
     private UUID uuidNode = UUID.randomUUID();
     private String name = "KETER";
@@ -76,11 +76,11 @@ public class Node {
     }
 
 
-    public Node(){
+    public NodeTemplate(){
 
     }
 
-    public Node(String name, String description, List<String> tags, String script, Map<String, String> parameters, List<List<String>> hardware, List<String> files) {
+    public NodeTemplate(String name, String description, List<String> tags, String script, Map<String, String> parameters, List<List<String>> hardware, List<String> files) {
         this.name = name;
         this.description = description;
         this.tags = tags;

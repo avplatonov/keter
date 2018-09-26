@@ -3,14 +3,9 @@ package ru.avplatonov.keter.keterbackend.controllers.management.graphs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
-import ru.avplatonov.keter.keterbackend.controllers.management.create.CreateNode;
-import ru.avplatonov.keter.keterbackend.db.GraphsDB;
-import ru.avplatonov.keter.keterbackend.db.NodesDB;
-import ru.avplatonov.keter.keterbackend.initialize.Node;
+import ru.avplatonov.keter.keterbackend.initialize.NodeTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +25,9 @@ public class GraphListController {
     private List<String> searchGraph(String value) throws JsonProcessingException {
         List<String> listOfGraphs = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
-        for (Node node : nodesDB.getListOfNodes()) {
-            if (node.getDescription().contains(value) || node.getTags().contains(value) || node.getName().contains(value)){
-                listOfGraphs.add(mapper.writeValueAsString(node));
+        for (NodeTemplate nodeTemplate : nodesDB.getListOfNodeTemplates()) {
+            if (nodeTemplate.getDescription().contains(value) || nodeTemplate.getTags().contains(value) || nodeTemplate.getName().contains(value)){
+                listOfGraphs.add(mapper.writeValueAsString(nodeTemplate));
             }
         }
         return listOfGraphs;
