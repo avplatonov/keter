@@ -5,21 +5,22 @@ import ru.avplatonov.keter.keterbackend.initialize.Node;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class GraphsDB {
 
-    private List<List<Node>> listOfGraphs = new ArrayList<>();
+    private List<Set<Node>> listOfGraphs = new ArrayList<>();
 
-    public List<List<Node>> getListOfGraphs() {
+    public List<Set<Node>> getListOfGraphs() {
         return listOfGraphs;
     }
 
-    public void setListOfGraphs(List<List<Node>> listOfGraphs) {
+    public void setListOfGraphs(List<Set<Node>> listOfGraphs) {
         this.listOfGraphs = listOfGraphs;
     }
 
-    public void addListOfNodes(List<Node> listOfGraphs){
+    public void addListOfNodes(Set<Node> listOfGraphs){
         this.listOfGraphs.add(listOfGraphs);
     }
 

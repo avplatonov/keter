@@ -2,20 +2,15 @@ package ru.avplatonov.keter.keterbackend.controllers.management.create;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ru.avplatonov.keter.keterbackend.Application;
 import ru.avplatonov.keter.keterbackend.initialize.Graph;
 import ru.avplatonov.keter.keterbackend.initialize.Node;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static ru.avplatonov.keter.keterbackend.Application.graphsDB;
 import static ru.avplatonov.keter.keterbackend.Application.nodesDB;
@@ -30,12 +25,12 @@ public class CreateGraph {
         ObjectMapper mapper = new ObjectMapper();
         //listOfNodes.add(graph);
         if(createGraph(graph).isEmpty())
-            return "Name of node is not found.";
+            return "Uuid of node is not found.";
         return "listOfGraphs.size=" + graphsDB.getListOfGraphs().size() + "\n" + mapper.writeValueAsString(createGraph(graph));
     }
 
-    private List<Node> createGraph(Graph uuidNodesToGraph) {
-        List<Node> listOfGraphsLocal = new ArrayList<>();
+    private Set<Node> createGraph(Graph uuidNodesToGraph) {
+        Set<Node> listOfGraphsLocal = new HashSet<>();
         for (UUID graphUuid : uuidNodesToGraph.getListOfUuidNodes()) {
             boolean containsNode = false;
             for (Node nodeUuid : nodesDB.getListOfNodes()) {
@@ -45,7 +40,7 @@ public class CreateGraph {
                 }
             }
             if(!containsNode)
-                return new ArrayList<>();
+                return new HashSet<>();
         }
         graphsDB.addListOfNodes(listOfGraphsLocal);
         return listOfGraphsLocal;

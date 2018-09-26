@@ -14,6 +14,7 @@ import ru.avplatonov.keter.keterbackend.initialize.Node;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static ru.avplatonov.keter.keterbackend.Application.nodesDB;
 
@@ -22,7 +23,7 @@ import static ru.avplatonov.keter.keterbackend.Application.nodesDB;
 public class NodeListController {
 
     @RequestMapping(value = "/nodes/all")
-    public List<Node> service() throws JsonProcessingException {
+    public Set<Node> service() throws JsonProcessingException {
         return nodesDB.getListOfNodes();
     }
 

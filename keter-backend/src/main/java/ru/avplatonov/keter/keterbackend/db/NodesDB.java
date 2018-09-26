@@ -4,14 +4,16 @@ import org.springframework.stereotype.Component;
 import ru.avplatonov.keter.keterbackend.initialize.Node;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class NodesDB {
 
-    private List<Node> listOfNodes = new ArrayList<>();
+    private Set<Node> listOfNodes = new HashSet<>();
 
-    public List<Node> getListOfNodes() {
+    public Set<Node> getListOfNodes() {
         return listOfNodes;
     }
 
@@ -19,7 +21,7 @@ public class NodesDB {
         this.listOfNodes.add(listOfNodes);
     }
 
-    public void setListOfNodes(List<Node> listOfNodes) {
+    public void setListOfNodes(Set<Node> listOfNodes) {
         this.listOfNodes = listOfNodes;
     }
 
