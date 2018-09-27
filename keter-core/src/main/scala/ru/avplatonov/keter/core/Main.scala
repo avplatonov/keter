@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 import org.apache.curator.retry.ExponentialBackoffRetry
 import ru.avplatonov.keter.core.discovery.messaging.{Client, HelloMessage, MessageType}
-import ru.avplatonov.keter.core.discovery.{Node, ZookeeperDiscoveryService}
+import ru.avplatonov.keter.core.discovery.{Node, Topology, TopologyDiff, ZookeeperDiscoveryService}
 
 object Main {
     def main(args: Array[String]): Unit = {
@@ -31,8 +31,11 @@ object Main {
             "/root/nodes"
         ))
 
-        service.subscribe((newTopology: List[Node]) => {
-            newTopology.foreach(println)
+        service.subscribe((newTopology: Topology, diff: TopologyDiff) => {
+            println("Topology changed")
+            diff.removedNodes.foreach(n => println(s"+ $n"))
+            diff.newNodes.foreach(n => println(s"- $n"))
+            println()
         })
 
         service.start(Node.Settings("127.0.0.1", 8081))

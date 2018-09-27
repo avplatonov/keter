@@ -31,7 +31,9 @@ import ru.avplatonov.keter.core.util.SerializedSettings
 import scala.collection.JavaConverters._
 
 object ZookeeperDiscoveryService {
+
     case class Settings(connectionString: String, retryPolicy: RetryPolicy, discoveryRoot: String)
+
 }
 
 //todo: enents need to be classified - new node, remove node etc.
@@ -52,7 +54,7 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
     /**
       * Discovered nodes.
       */
-    private val nodes = new ConcurrentHashMap[NodeId, Node]()
+    private val nodes = new ConcurrentHashMap[NodeId, Node]().asScala
 
     /**
       * Topology changes listener.
@@ -76,7 +78,8 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         if (isStarted()) {
             assert(localNode != null)
             Some(localNode)
-        } else {
+        }
+        else {
             None
         }
     }
@@ -136,20 +139,26 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
     private def discoverNodes(): Unit = {
         val newNodes = zk.getChildren.forPath(settings.discoveryRoot).asScala
             .map(child => getNode(child))
-            .map(n => n.id -> n).toMap.asJava
+            .map(n => n.id -> n).toMap
 
-        assert(newNodes.containsKey(localNode.id))
+        assert(newNodes.contains(localNode.id))
+        val newTopology = Topology(newNodes)
+        val diff = Topology(nodes.toMap) diff newTopology
+
         nodes synchronized {
             nodes.clear()
-            nodes.putAll(newNodes)
+            nodes ++= newNodes
         }
 
-        val newTopology = newNodes.values().asScala.toList
-        listeners.values.foreach(listener => listenersPool.submit(new Runnable {
-            override def run(): Unit = {
-                listener.apply(newTopology)
+        listeners.values.foreach(listener => {
+            if (isStarted()) {
+                listenersPool.submit(new Runnable {
+                    override def run(): Unit = {
+                        listener.apply(newTopology, diff)
+                    }
+                })
             }
-        }))
+        })
     }
 
     private def getNode(childId: String) = {
@@ -186,7 +195,8 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
 
             if (started.get() && localNode != null)
                 localNode.stop()
-        } finally {
+        }
+        finally {
             started.set(false)
         }
     }
@@ -194,16 +204,13 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
     /**
       * @return list of all nodes for current cluster version.
       */
-    override def allNodes: List[Node] = nodes.values().asScala.toList
+    override def allNodes: List[Node] = nodes.values.toList
 
     /**
       * @param nodeId node id in cluster.
       * @return node in cluster.
       */
-    override def get(nodeId: Long): Option[Node] = nodes.get(nodeId) match {
-        case null => None
-        case node => Some(node)
-    }
+    override def get(nodeId: NodeId): Option[Node] = nodes.get(nodeId)
 
     /**
       * Subscribe to topology changing events.

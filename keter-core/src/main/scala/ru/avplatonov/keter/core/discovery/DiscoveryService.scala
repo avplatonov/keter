@@ -41,7 +41,7 @@ trait DiscoveryService {
       * @param nodeId node id in cluster.
       * @return node in cluster.
       */
-    def get(nodeId: Long): Option[Node]
+    def get(nodeId: NodeId): Option[Node]
 
     /**
       * Subscribe to topology changing events.
@@ -72,5 +72,25 @@ trait DiscoveryService {
   * Topology changes listener.
   */
 trait EventListener {
-    def apply(newTopology: List[Node]): Unit
+    def apply(
+        newTopology: Topology,
+        topologyDiff: TopologyDiff
+    ): Unit
 }
+
+case class Topology(nodes: Map[NodeId, Node]) {
+    def diff(other: Topology): TopologyDiff = {
+        val leftKeys = this.nodes.keySet
+        val rightKeys = other.nodes.keySet
+
+        TopologyDiff(
+            newNodes = rightKeys.filterNot(leftKeys).map(k => k -> other.nodes(k)).toMap,
+            removedNodes = leftKeys.filterNot(rightKeys).map(k => k -> this.nodes(k)).toMap
+        )
+    }
+}
+
+case class TopologyDiff(
+    newNodes: Map[NodeId, Node],
+    removedNodes: Map[NodeId, Node]
+)
