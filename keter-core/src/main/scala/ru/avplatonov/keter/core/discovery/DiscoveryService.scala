@@ -94,3 +94,5 @@ case class TopologyDiff(
     newNodes: Map[NodeId, Node],
     removedNodes: Map[NodeId, Node]
 )
+
+case class RepeatedStartException(parent: Exception) extends RuntimeException(parent)

@@ -18,7 +18,7 @@
 package ru.avplatonov.keter.core.discovery
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ConcurrentHashMap, Executors, TimeUnit}
 
 import org.apache.curator.RetryPolicy
@@ -29,10 +29,16 @@ import org.apache.zookeeper.{CreateMode, WatchedEvent}
 import ru.avplatonov.keter.core.util.SerializedSettings
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 
 object ZookeeperDiscoveryService {
 
-    case class Settings(connectionString: String, retryPolicy: RetryPolicy, discoveryRoot: String)
+    case class Settings(
+        connectionString: String,
+        retryPolicy: RetryPolicy,
+        discoveryRoot: String,
+        discoveryTimeout: Duration = 1 minute
+    )
 
 }
 
@@ -67,6 +73,14 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
     private val listenersPool = Executors.newSingleThreadExecutor()
 
     /**
+      * Watchdog pool.
+      */
+    private val watchdogPool = Executors.newCachedThreadPool()
+
+    /** */
+    private val lastDiscoveringTime = new AtomicLong(System.currentTimeMillis())
+
+    /**
       * @return true if service was started.
       */
     override def isStarted(): Boolean = started.get()
@@ -92,12 +106,18 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
     override def start(localNodeSettings: Node.Settings): Node = synchronized {
         try {
             if (!started.get()) {
-                zk.start()
+                try {
+                    zk.start()
+                } catch {
+                    case e: IllegalStateException => throw RepeatedStartException(e)
+                }
+
                 localNode = createLocalNode(localNodeSettings)
                 nodes.put(localNode.id, localNode)
                 localNode.start()
                 watchRoot()
                 discoverNodes()
+                runPeriodicallyDiscover()
                 started.set(true)
             }
 
@@ -157,6 +177,21 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
                         listener.apply(newTopology, diff)
                     }
                 })
+            }
+        })
+
+        lastDiscoveringTime.set(System.currentTimeMillis())
+    }
+
+    private def runPeriodicallyDiscover(): Unit = {
+        watchdogPool.submit(new Runnable {
+            override def run(): Unit = {
+                while(isStarted()) {
+                    Thread.sleep(settings.discoveryTimeout.toMillis)
+                    if((System.currentTimeMillis() - lastDiscoveringTime.get()) > settings.discoveryTimeout.toMillis) {
+                        discoverNodes()
+                    }
+                }
             }
         })
     }
