@@ -5,6 +5,7 @@ import java.nio.file.Path
 import java.util.UUID
 
 import com.google.common.io.Files
+import org.apache.commons.io.FileUtils
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
 
@@ -125,6 +126,31 @@ class LocalFilesStorageTest extends FlatSpec with Matchers with BeforeAndAfter {
         })
     }
 
+    "fs" should "return all files in dir recursively" in {
+        val tempSubDir = Files.createTempDir().toPath
+
+        def createDir(id: Int): Path = {
+            val dir = tempSubDir.resolve(s"dir_$id")
+            dir.toFile.mkdir()
+            dir
+        }
+
+        def createSubfiles(dirId: Int, count: Int): (Path, List[Path]) = {
+            val tempDir = createDir(dirId)
+            val tmpFiles = (0 until count).map(i => tempDir.resolve(s"file_$i"))
+            (tempDir, tmpFiles.toList)
+        }
+
+        try {
+            val tmpFiles0 = (0 until 10).map(i => tempDir.toPath.resolve(s"file_$i"))
+            val (dir1, tmpFiles1) = createSubfiles(1, 2)
+            val (dir2, tmpFiles2) = createSubfiles(2, 10)
+
+        } finally {
+            FileUtils.deleteDirectory(tempSubDir.toFile)
+        }
+    }
+
     private def descOf(file: File): LocalFileDescriptor =
         LocalFileDescriptorParser(file.toPath.toString).get
 
@@ -133,7 +159,8 @@ class LocalFilesStorageTest extends FlatSpec with Matchers with BeforeAndAfter {
 
         try {
             f(temp)
-        } finally {
+        }
+        finally {
             temp.toFile.delete()
         }
     }

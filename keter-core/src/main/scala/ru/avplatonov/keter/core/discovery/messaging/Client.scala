@@ -20,6 +20,8 @@ package ru.avplatonov.keter.core.discovery.messaging
 import java.io.{DataOutputStream, IOException}
 import java.net.{Socket, SocketTimeoutException}
 
+import org.slf4j.LoggerFactory
+
 import scala.concurrent.duration.{Duration, _}
 
 object Client {
@@ -35,7 +37,10 @@ case class SendingDataException(e: Exception)
     extends RuntimeException("Sending data from client to server error", e)
 
 class Client(settings: Client.Settings) {
+    private val logger = LoggerFactory.getLogger(s"${getClass.getSimpleName}-${settings.serverHost}:${settings.serverPort}")
+
     def send(message: Message): Unit = {
+        logger.debug(s"Sending message to server with type ${message.`type`} [$message]")
         try {
             resource.managed(socket())
                 .flatMap(s => resource.managed(s.getOutputStream))
@@ -47,6 +52,7 @@ class Client(settings: Client.Settings) {
             }
         } catch {
             case e: IOException =>
+                logger.error("Sending data exception", e)
                 throw SendingDataException(e)
         }
     }

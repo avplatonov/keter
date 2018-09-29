@@ -25,11 +25,13 @@ import ru.avplatonov.keter.core.discovery.{Node, Topology, TopologyDiff, Zookeep
 
 object Main {
     def main(args: Array[String]): Unit = {
-        val service = ZookeeperDiscoveryService(ZookeeperDiscoveryService.Settings(
-            connectionString = "127.0.0.1:2181",
-            retryPolicy = new ExponentialBackoffRetry(1000, 3),
-            "/root/nodes"
-        ))
+        val service = ZookeeperDiscoveryService(
+            ZookeeperDiscoveryService.Settings(
+                connectionString = "127.0.0.1:2181",
+                retryPolicy = new ExponentialBackoffRetry(1000, 3),
+                "/root/nodes"),
+            Node.Settings("127.0.0.1", 8081)
+        )
 
         service.subscribe((newTopology: Topology, diff: TopologyDiff) => {
             println("Topology changed")
@@ -38,7 +40,7 @@ object Main {
             println()
         })
 
-        service.start(Node.Settings("127.0.0.1", 8081))
+        service.start()
         service.getLocalNode().foreach(localNode => {
             localNode.registerProcessor(MessageType.HELLO_MSG, msg => {
                 println("Hello message")
@@ -48,7 +50,7 @@ object Main {
         Thread.sleep(TimeUnit.SECONDS.toMillis(1))
         var i = 0
         val client = new Client(Client.Settings(serverHost = "127.0.0.1", serverPort = 8081))
-        while(i < 10) {
+        while (i < 10) {
             client.send(HelloMessage())
             i = i + 1
         }

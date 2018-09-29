@@ -155,6 +155,17 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
       */
     override def delete(desc: LocalFileDescriptor): Boolean = desc.filepath.toFile.delete()
 
+    /**
+      * Recursively scans directory and returns all files paths in it.
+      *
+      * @param dir target dir.
+      * @return all files in dir recursively.
+      */
+    def scanFiles(dir: Path): Stream[Path] = {
+        val (files, dirs) = dir.toFile.listFiles().filter(_.isHidden).span(_.isFile)
+        dirs.map(_.toPath).toStream #::: dirs.map(_.toPath).toStream.flatMap(scanFiles)
+    }
+
     /** */
     private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit) =
         if(!ignoreExisting && exists(fileToCheck)) false

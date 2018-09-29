@@ -14,6 +14,9 @@
         <curator.version>4.0.1</curator.version>
         <netty.version>4.1.29.Final</netty.version>
         <zk.test.version>3.2.1</zk.test.version>
+        <commons.io.version>2.6</commons.io.version>
+        <slf4j.api.version>1.7.25</slf4j.api.version>
+        <slf4j.log4j.version>1.7.25</slf4j.log4j.version>
     </properties>
 
     <parent>
@@ -74,6 +77,24 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>${netty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.api.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.log4j.version}</version>
         </dependency>
 
         <dependency>

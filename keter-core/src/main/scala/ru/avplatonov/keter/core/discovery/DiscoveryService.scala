@@ -23,9 +23,8 @@ package ru.avplatonov.keter.core.discovery
 trait DiscoveryService {
     /**
       * Start service.
-      * @param localNodeSettings current node settings.
       */
-    def start(localNodeSettings: Node.Settings): Node
+    def start(): Node
 
     /**
       * Stop service.

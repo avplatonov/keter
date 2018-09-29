@@ -8,6 +8,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.apache.curator.utils.ZKPaths
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import ru.avplatonov.keter.core.discovery
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -35,10 +36,10 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
     }
 
     it should "starts and register in ZK" in {
-        val discovery = ZookeeperDiscoveryService(zkConnSettings)
+        val discovery = ZookeeperDiscoveryService(zkConnSettings, Node.Settings("127.0.0.1", 8081))
 
         try {
-            discovery.start(Node.Settings("127.0.0.1", 8081))
+            discovery.start()
             checkServiceStarting(discovery)
 
             val nodeIds = ZKPaths.getSortedChildren(zk.getZookeeperClient.getZooKeeper, "/root/nodes").asScala
@@ -62,12 +63,12 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
 
     it should "may start several services on several ports and register nodes" in {
         val discoverySettings = (0 until 10).map(i => Node.Settings("127.0.0.1", 8081 + i))
-        val discoveries = discoverySettings.map(s => ZookeeperDiscoveryService(zkConnSettings))
+        val discoveries = discoverySettings.map(s => ZookeeperDiscoveryService(zkConnSettings, s))
 
         try {
             (discoveries zip discoverySettings) foreach {
                 case (service, settings) =>
-                    service.start(settings)
+                    service.start()
                     checkServiceStarting(service)
             }
 
@@ -96,7 +97,7 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
 
     it should "fire envents on topology changes" in {
         val AWAITING_TIME = 1000
-        val firstService = ZookeeperDiscoveryService(zkConnSettings)
+        val firstService = ZookeeperDiscoveryService(zkConnSettings, Node.Settings("127.0.0.1", 8081))
 
         val incomings = mutable.Buffer[NodeId]()
         val outcomings = mutable.Buffer[NodeId]()
@@ -107,10 +108,10 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
         })
 
         try {
-            firstService.start(Node.Settings("127.0.0.1", 8081))
+            firstService.start()
 
-            val firstStartId = startStop(ZookeeperDiscoveryService(zkConnSettings), 8082)
-            val secondStartId = startStop(ZookeeperDiscoveryService(zkConnSettings), 8082)
+            val firstStartId = startStop(ZookeeperDiscoveryService(zkConnSettings, Node.Settings("127.0.0.1", 8082)))
+            val secondStartId = startStop(ZookeeperDiscoveryService(zkConnSettings, Node.Settings("127.0.0.1", 8082)))
 
             Thread.sleep(AWAITING_TIME)
             incomings.size should equal(2)
@@ -122,19 +123,19 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
         }
     }
 
-    private def startStop(service: DiscoveryService, port: Int): NodeId = {
-        service.start(Node.Settings("127.0.0.1", port))
+    private def startStop(service: DiscoveryService): NodeId = {
+        service.start()
         val nodeID = service.getLocalNode().get.id
         service.stop()
         nodeID
     }
 
     it should "bind to 8081 port" in {
-        val firstService = ZookeeperDiscoveryService(zkConnSettings)
+        val firstService = ZookeeperDiscoveryService(zkConnSettings, Node.Settings("127.0.0.1", 8081))
         try {
-            firstService.start(Node.Settings("127.0.0.1", 8081))
+            firstService.start()
             assertThrows[BindException] {
-                startStop(ZookeeperDiscoveryService(zkConnSettings), 8081)
+                startStop(ZookeeperDiscoveryService(zkConnSettings, Node.Settings("127.0.0.1", 8081)))
             }
         } finally {
             firstService.stop()
@@ -143,9 +144,9 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
 
     it should "deny restart one service several times" in {
         assertThrows[RepeatedStartException] {
-            val service = ZookeeperDiscoveryService(zkConnSettings)
-            startStop(service, 8081)
-            startStop(service, 8081)
+            val service = ZookeeperDiscoveryService(zkConnSettings, new discovery.Node.Settings("127.0.0.1", 8081))
+            startStop(service)
+            startStop(service)
         }
     }
 
