@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.{Duration, _}
 
+/** */
 object Client {
     case class Settings(
         serverHost: String,
@@ -33,12 +34,19 @@ object Client {
     )
 }
 
+/** */
 case class SendingDataException(e: Exception)
     extends RuntimeException("Sending data from client to server error", e)
 
+/**
+  * Simple discovery client.
+  * Just open socket, send data to it and close it.
+  */
 class Client(settings: Client.Settings) {
+    /** */
     private val logger = LoggerFactory.getLogger(s"${getClass.getSimpleName}-${settings.serverHost}:${settings.serverPort}")
 
+    /** */
     def send(message: Message): Unit = {
         logger.debug(s"Sending message to server with type ${message.`type`} [$message]")
         try {
@@ -57,6 +65,9 @@ class Client(settings: Client.Settings) {
         }
     }
 
+    /**
+      * Creates socket.
+      */
     private def socket(): Socket = {
         val socket = new Socket(settings.serverHost, settings.serverPort)
         socket.setSoTimeout(settings.sendTimeout.toMillis.toInt)

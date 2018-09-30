@@ -21,28 +21,38 @@ import java.util.UUID
 
 import io.netty.buffer.ByteBuf
 
+/** Message decoding i-face.
+  * TODO: it's a creepy code. We need to replace custom message serialization to protobuf or other frameforks.
+  */
 object Message {
+    /** */
     def read(messageType: MessageType, buf: ByteBuf): Message = messageType match {
         case MessageType.HELLO_MSG =>
-            HelloMessage()
+        HelloMessage()
     }
 
+    /** */
     def serialize(msg: Message): Array[Byte] = msg.`type` match {
         case MessageType.HELLO_MSG =>
-            Array()
-            //skip wiring
+        Array()
+        //skip wiring
     }
 
+    /** */
     def sizeof(messageType: MessageType): Int = messageType match {
         case MessageType.HELLO_MSG => 0
     }
 }
 
+/***
+  * System message.
+  */
 trait Message {
     val `type`: MessageType
     val id: String
 }
 
+/** Just for debugging. */
 case class HelloMessage() extends Message {
     override val `type`: MessageType = MessageType.HELLO_MSG
     override val id: String = UUID.randomUUID().toString

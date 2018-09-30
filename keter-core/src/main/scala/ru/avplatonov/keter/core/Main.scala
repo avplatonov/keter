@@ -23,7 +23,14 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import ru.avplatonov.keter.core.discovery.messaging.{Client, HelloMessage, MessageType}
 import ru.avplatonov.keter.core.discovery.{Node, Topology, TopologyDiff, ZookeeperDiscoveryService}
 
+/**
+  * Main class.
+  * Use it for application starting.
+  *
+  * TODO: currently it's used for manual testing.
+  */
 object Main {
+    /** */
     def main(args: Array[String]): Unit = {
         val service = ZookeeperDiscoveryService(
             ZookeeperDiscoveryService.Settings(
@@ -41,7 +48,7 @@ object Main {
         })
 
         service.start()
-        service.getLocalNode().foreach(localNode => {
+        service.getLocalNode.foreach(localNode => {
             localNode.registerProcessor(MessageType.HELLO_MSG, msg => {
                 println("Hello message")
             })

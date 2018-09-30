@@ -45,7 +45,7 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
             val nodeIds = ZKPaths.getSortedChildren(zk.getZookeeperClient.getZooKeeper, "/root/nodes").asScala
                 .map(x => x.replaceAll("node_", "").toLong)
                 .toSet
-            val localNode = discovery.getLocalNode().get
+            val localNode = discovery.getLocalNode.get
             nodeIds.contains(localNode.id.value) should equal(true)
             val bytes = zk.getData.forPath("/root/nodes/node_0000000000")
             val settings = resource.managed(new ObjectInputStream(new ByteArrayInputStream(bytes)))
@@ -72,7 +72,7 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
                     checkServiceStarting(service)
             }
 
-            val allnodeIds = discoveries.flatMap(_.getLocalNode()).map(_.id).toSet
+            val allnodeIds = discoveries.flatMap(_.getLocalNode).map(_.id).toSet
             discoveries foreach {
                 case discovery =>
                     discovery.allNodes.map(_.id).toSet should equal(allnodeIds)
@@ -125,7 +125,7 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
 
     private def startStop(service: DiscoveryService): NodeId = {
         service.start()
-        val nodeID = service.getLocalNode().get.id
+        val nodeID = service.getLocalNode.get.id
         service.stop()
         nodeID
     }
@@ -151,16 +151,17 @@ class ZookeeperDiscoveryServiceTest extends FlatSpec with Matchers with BeforeAn
     }
 
     private def checkServiceStarting(discovery: DiscoveryService): Unit = {
-        discovery.isStarted() should equal(true)
-        discovery.getLocalNode().isDefined should equal(true)
-        discovery.getLocalNode().get.isLocal should equal(true)
-        val localNodeId = discovery.getLocalNode().get.id
+        discovery.isStarted should equal(true)
+        val localNode = discovery.getLocalNode
+        localNode.isDefined should equal(true)
+        localNode.get.isLocal should equal(true)
+        val localNodeId = localNode.get.id
         discovery.get(localNodeId).map(_.id) should equal(Some(localNodeId))
         discovery.allNodes.map(_.id).contains(localNodeId)
     }
 
     private def checkServiceStopping(discovery: DiscoveryService): Unit = {
-        discovery.isStarted() should equal(false)
+        discovery.isStarted should equal(false)
     }
 
     override protected def afterAll(): Unit = {

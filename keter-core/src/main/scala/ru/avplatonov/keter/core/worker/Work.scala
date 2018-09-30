@@ -21,4 +21,11 @@ import java.nio.file.Path
 
 import ru.avplatonov.keter.core.task.Task
 
+/**
+  * Some task with resources for running.
+  *
+  * @param task task description.
+  * @param inputFiles input files.
+  * @param outputFiles output files.
+  */
 case class Work(task: Task, inputFiles: Map[String, Path], outputFiles: Map[String, Path])

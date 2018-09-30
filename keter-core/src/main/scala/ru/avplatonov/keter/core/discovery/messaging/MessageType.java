@@ -17,6 +17,8 @@
 
 package ru.avplatonov.keter.core.discovery.messaging;
 
+/** Messages type in system. */
 public enum MessageType {
+    /** Message type just for debugging */
     HELLO_MSG
 }

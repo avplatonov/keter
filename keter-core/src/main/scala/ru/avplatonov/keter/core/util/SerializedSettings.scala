@@ -19,7 +19,16 @@ package ru.avplatonov.keter.core.util
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
+/**
+  * Utility trait and object for objects serialization by
+  * java tools.
+  */
 trait SerializedSettings extends Serializable {
+    /**
+      * Serialize object to byte array.
+      *
+      * @return serialized object.
+      */
     def serialize(): Array[Byte] = {
         val bos = new ByteArrayOutputStream()
         val oos = new ObjectOutputStream(bos)
@@ -29,6 +38,13 @@ trait SerializedSettings extends Serializable {
 }
 
 object SerializedSettings {
+    /**
+      * Deserialize object from byte array.
+      *
+      * @param bytes byte array - serialized object.
+      * @tparam T type of serialized object.
+      * @return deserialized object.
+      */
     def deserialize[T <: SerializedSettings](bytes: Array[Byte]): T = {
         val bis = new ByteArrayInputStream(bytes)
         val ois = new ObjectInputStream(bis)

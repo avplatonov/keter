@@ -59,25 +59,37 @@ trait DiscoveryService {
     /**
       * @return true if service was started.
       */
-    def isStarted(): Boolean
+    def isStarted: Boolean
 
     /**
       * @return local node if service was started.
       */
-    def getLocalNode(): Option[LocalNode]
+    def getLocalNode: Option[LocalNode]
 }
 
 /**
   * Topology changes listener.
   */
 trait EventListener {
-    def apply(
-        newTopology: Topology,
-        topologyDiff: TopologyDiff
-    ): Unit
+    /**
+      * Topology change callback.
+      *
+      * @param newTopology new topology state.
+      * @param topologyDiff diff with last version.
+      */
+    def apply(newTopology: Topology, topologyDiff: TopologyDiff): Unit
 }
 
+/**
+  * Cluster topology representation.
+  */
 case class Topology(nodes: Map[NodeId, Node]) {
+    /**
+      * Returns diff between topologies of several versions.
+      *
+      * @param other other state.
+      * @return diff.
+      */
     def diff(other: Topology): TopologyDiff = {
         val leftKeys = this.nodes.keySet
         val rightKeys = other.nodes.keySet
@@ -89,9 +101,8 @@ case class Topology(nodes: Map[NodeId, Node]) {
     }
 }
 
+/** */
 case class TopologyDiff(
     newNodes: Map[NodeId, Node],
     removedNodes: Map[NodeId, Node]
 )
-
-case class RepeatedStartException(parent: Exception) extends RuntimeException(parent)

@@ -17,7 +17,6 @@
 
 package ru.avplatonov.keter.core.discovery
 
-import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ConcurrentHashMap, Executors, TimeUnit}
 
@@ -49,20 +48,26 @@ object ZookeeperDiscoveryService {
 case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Settings, localNodeSettings: Node.Settings)
     extends DiscoveryService {
 
-    /** */
-    val serviceId: UUID = UUID.randomUUID()
-
-    /** */
+    /**
+      * True if service was started.
+      */
     private val started = new AtomicBoolean(false)
 
-    /** */
+    /**
+      * Zookeeper client.
+      */
     private val zk = CuratorFrameworkFactory.newClient(settings.connectionString, settings.retryPolicy)
 
-    /** Repeated starting protection. */
+    /**
+      * Repeated starting protection.
+      * Starting latch. Even if service was stopped this flag will be equal true.
+      */
     private val wasStarted = new AtomicBoolean(false)
 
-    /** */
-    @volatile private var localNode: LocalNode = null
+    /**
+      * Local node delegate.
+      */
+    @volatile private var localNode: LocalNode = _
 
     /**
       * Discovered nodes.
@@ -84,7 +89,9 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
       */
     private val watchdogPool = Executors.newCachedThreadPool()
 
-    /** */
+    /**
+      * Time since last discovery event.
+      */
     private val lastDiscoveringTime = new AtomicLong(System.currentTimeMillis())
 
     private val logger = LoggerFactory.getLogger(s"${getClass.getSimpleName}-[${localNodeSettings.address}:${localNodeSettings.listenedPort}]")
@@ -92,13 +99,13 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
     /**
       * @return true if service was started.
       */
-    override def isStarted(): Boolean = started.get()
+    override def isStarted: Boolean = started.get()
 
     /**
       * @return local node if service was started.
       */
-    override def getLocalNode(): Option[LocalNode] = {
-        if (isStarted()) {
+    override def getLocalNode: Option[LocalNode] = {
+        if (isStarted) {
             assert(localNode != null)
             Some(localNode)
         }
@@ -121,12 +128,16 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
                 logger.info("Create and register local node")
                 localNode = createLocalNode(localNodeSettings)
                 nodes.put(localNode.id, localNode)
+
                 logger.info(s"Starting local node [id = ${localNode.id}]")
                 localNode.start()
+
                 logger.info(s"Start watching root [${settings.discoveryRoot}]")
                 watchRoot()
+
                 logger.info("Initial nodes discovery")
                 discoverNodes()
+
                 logger.info("Starts periodically discovering")
                 runPeriodicallyDiscover()
                 started.set(true)
@@ -147,13 +158,20 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         }
     }
 
+    /**
+      * Register service in Zookeeper, gets id of current node and
+      * creates local node with it.
+      *
+      * @param nodeSettings starting node settings.
+      * @return local node.
+      */
     private def createLocalNode(nodeSettings: Node.Settings): LocalNode = {
         val nodeID = toNodeId {
             zk.create()
                 .creatingParentsIfNeeded()
                 .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
                 .forPath(
-                    nodesPath,
+                    nodesPathPrefix,
                     nodeSettings.serialize()
                 )
         }
@@ -161,6 +179,10 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         LocalNode(nodeID, nodeSettings)
     }
 
+    /**
+      * Recursive subscribing to Zookeeper events with topology changing.
+      * For each topology changing will be called node discovering.
+      */
     private def watchRoot(): Unit = {
         zk.getChildren.usingWatcher(new CuratorWatcher {
             override def process(event: WatchedEvent): Unit = {
@@ -174,6 +196,9 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         }).forPath(settings.discoveryRoot)
     }
 
+    /**
+      * Gets list of all node ids at zk-root and constructs by them new topology.
+      */
     private def discoverNodes(): Unit = {
         val nodeKeys = zk.getChildren.forPath(settings.discoveryRoot).asScala
         logger.debug(s"Nodes in ZK root [${nodeKeys.mkString(",")}]")
@@ -185,7 +210,7 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         val newTopology = Topology(newNodes)
         val diff = Topology(nodes.toMap) diff newTopology
 
-        logger.info(s"New topology [diff = ${diff}]")
+        logger.info(s"New topology [diff = $diff]")
 
         nodes synchronized {
             nodes.clear()
@@ -193,7 +218,7 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         }
 
         listeners.values.foreach(listener => {
-            if (isStarted()) {
+            if (isStarted) {
                 listenersPool.submit(new Runnable {
                     override def run(): Unit = {
                         listener.apply(newTopology, diff)
@@ -205,10 +230,14 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         lastDiscoveringTime.set(System.currentTimeMillis())
     }
 
+    /**
+      * Discover watchdog. If there was no topology changing events for a long time then
+      * watchdog forces nodes discovering.
+      */
     private def runPeriodicallyDiscover(): Unit = {
         watchdogPool.submit(new Runnable {
             override def run(): Unit = {
-                while (isStarted()) {
+                while (isStarted) {
                     Thread.sleep(settings.discoveryTimeout.toMillis)
                     if ((System.currentTimeMillis() - lastDiscoveringTime.get()) > settings.discoveryTimeout.toMillis) {
                         logger.info("Discovering timeout. Check cluster status.")
@@ -219,6 +248,12 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         })
     }
 
+    /**
+      * Restores node representation by sub-path in Zookeeper.
+      *
+      * @param childId sub-path in Zookeeper.
+      * @return optional node descriptor.
+      */
     private def getNode(childId: String): Option[Node] = {
         val childPath = s"${settings.discoveryRoot}/$childId"
         Try(zk.getData.forPath(childPath)) match {
@@ -231,26 +266,39 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
 
     }
 
-    private def createNode(path: String, nodeAddresses: Node.Settings): Node = {
+    /**
+      * Creates node description by its config.
+      * @param path node path.
+      * @param settings node settings.
+      * @return node.
+      */
+    private def createNode(path: String, settings: Node.Settings): Node = {
         val nodeId = toNodeId(path)
         if (nodeId == localNode.id)
             localNode
         else
-            createRemoteNode(nodeId, nodeAddresses)
+            RemoteNode(nodeId, settings)
     }
 
-    private def createRemoteNode(nodeID: NodeId, settings: Node.Settings): Node = RemoteNode(nodeID, settings)
+    /** */
+    private val nodesPathPrefix: String = s"${settings.discoveryRoot}/node_"
 
-    private val nodesPath: String = s"${settings.discoveryRoot}/node_"
-
+    /**
+      * Converts node path to node id.
+      *
+      * @param path node path in Zookeeper.
+      * @return node id.
+      */
     private def toNodeId(path: String): NodeId = NodeId(path.split("_").last.toLong)
 
     /**
-      * Stop service.
+      * Stops service.
       */
     override def stop(): Unit = synchronized {
         try {
             if(started.get()) {
+                started.set(false)
+
                 logger.info("Stopping discovery service.")
                 if (zk.getState == CuratorFrameworkState.STARTED) {
                     logger.info("Shutdown Zookeeper Client.")
@@ -261,13 +309,12 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
                 listenersPool.shutdown()
                 listenersPool.awaitTermination(1, TimeUnit.HOURS)
 
-                if (started.get() && localNode != null) {
+                if (localNode != null) {
                     logger.info("Stopping local node server.")
                     localNode.stop()
                 }
             }
-        }
-        finally {
+        } finally {
             started.set(false)
         }
     }
@@ -299,3 +346,6 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
     override def unsubscribe(eventListener: EventListener): Unit =
         listeners.remove(eventListener.hashCode())
 }
+
+/** */
+case class RepeatedStartException(parent: Exception) extends RuntimeException(parent)

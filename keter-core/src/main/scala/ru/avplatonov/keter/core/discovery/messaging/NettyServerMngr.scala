@@ -31,43 +31,65 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.ByteToMessageDecoder
 import org.slf4j.LoggerFactory
 
+/** */
 object NettyServerMngr {
-
+    /** */
     case class Settings(
         bossPoolSize: Int = 3, //why such values? I don't know, we should investigate optimal parameters
         workerPoolSize: Int = 3
     )
-
 }
 
-//todo: comments
 //todo: replace sync blocks
+/**
+  * Manager for Netty server. It initializes and starts Netty server, stops it, create decoders for messages, manages
+  * pools of server.
+  */
 case class NettyServerMngr(port: Int,
     messageProcessor: Message => Unit,
     settings: NettyServerMngr.Settings = NettyServerMngr.Settings()) {
 
+    /** */
     private val logger = LoggerFactory.getLogger(s"${getClass.getSimpleName}-$port")
 
+    /** */
     private var wasStarted = false
+    /** */
     private var wasStopped = false
-    private var channel: Channel = null
 
+    /**
+      * Server listening channel.
+      */
+    private var channel: Channel = _
+
+    /**
+      * Equals zero if server was started of failed.
+      */
     private val startingLatch = new CountDownLatch(1)
+
+    /**
+      * Last error in Netty thread.
+      */
     private val workerError = new AtomicReference[Exception]()
 
+    /** */
     private val msgTypeMapping = MessageType.values().map(x => x.ordinal() -> x).toMap
 
-    private val workerPool = Executors.newSingleThreadExecutor(
+    /** */
+    private val serverPool = Executors.newSingleThreadExecutor(
         new ThreadFactoryBuilder()
             .setNameFormat("nio-server-main-%d")
             .setUncaughtExceptionHandler(uncaughtExceptionHandler)
             .build()
     )
 
+    /**
+      * Runs netty server.
+      */
     def run(): Unit = synchronized {
         if(!wasStarted) {
             logger.info(s"Starting netty server on port $port")
-            workerPool.submit(new NettyServerWorker())
+            serverPool.submit(new NettyServerWorker())
 
             logger.info("Await server thread starting")
             startingLatch.await()
@@ -82,6 +104,11 @@ case class NettyServerMngr(port: Int,
         }
     }
 
+    /**
+      * Stops server.
+      *
+      * @param force true for forced stop of server threads without awaiting of them termination.
+      */
     def stop(force: Boolean = false): Unit = synchronized {
         startingLatch.countDown()
 
@@ -90,11 +117,11 @@ case class NettyServerMngr(port: Int,
             channel.close()
 
             logger.info("Stop server request. Shutdown pool.")
-            if(force) workerPool.shutdownNow()
-            else workerPool.shutdown()
+            if(force) serverPool.shutdownNow()
+            else serverPool.shutdown()
 
             logger.info("Stop server request. Await pool termination.")
-            workerPool.awaitTermination(1, TimeUnit.HOURS)
+            serverPool.awaitTermination(1, TimeUnit.HOURS)
 
             wasStopped = true
             logger.info("Stop server request. Server was stopped")
@@ -103,15 +130,19 @@ case class NettyServerMngr(port: Int,
         }
     }
 
+    /** */
     private def initServerMgr(channel: Channel): Unit = {
         wasStarted = true
         this.channel = channel
         startingLatch.countDown()
     }
 
-    private def uncaughtExceptionHandler(thread: Thread, e: Throwable) = stop()
+    /** */
+    private def uncaughtExceptionHandler(thread: Thread, e: Throwable): Unit = stop()
 
+    /** */
     private class MessagesDecoder() extends ByteToMessageDecoder {
+        /** */
         override def decode(context: ChannelHandlerContext, buf: ByteBuf, list: util.List[AnyRef]): Unit = {
             val bytesInBuffer = buf.readableBytes()
             while(bytesInBuffer >= 4) {
@@ -124,13 +155,16 @@ case class NettyServerMngr(port: Int,
             }
         }
 
+        /** */
         override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
             ctx.close()
             logger.error("Error while message decoding", cause)
         }
     }
 
+    /** */
     private class ReceiveMessageHandler() extends ChannelInboundHandlerAdapter {
+        /** */
         override def channelRead(ctx: ChannelHandlerContext, chMsg: scala.Any): Unit = {
             try {
                 val msg = chMsg.asInstanceOf[Message]
@@ -141,18 +175,24 @@ case class NettyServerMngr(port: Int,
             }
         }
 
+        /** */
         override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
             ctx.close()
             logger.error("Exception while message reading", cause)
         }
     }
 
+    /**
+      * Netty server thread.
+      */
     private class NettyServerWorker extends Runnable {
         private val logger = LoggerFactory.getLogger(s"${getClass.getSimpleName}-$port")
 
+        /** */
         override def run(): Unit = {
             logger.info("Starting netty server worker.")
 
+            /** */
             def createPool(name: String, size: Int) = {
                 new NioEventLoopGroup(size,
                     new ThreadFactoryBuilder()
