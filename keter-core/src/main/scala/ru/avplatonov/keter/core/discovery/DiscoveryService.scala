@@ -59,12 +59,12 @@ trait DiscoveryService {
     /**
       * @return true if service was started.
       */
-    def isStarted: Boolean
+    def isStarted(): Boolean
 
     /**
       * @return local node if service was started.
       */
-    def getLocalNode: Option[LocalNode]
+    def getLocalNode(): Option[LocalNode]
 }
 
 /**

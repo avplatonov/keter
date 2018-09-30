@@ -15,16 +15,27 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.discovery.messaging;
+package ru.avplatonov.keter.core.storage.remote
 
-/** Messages type in system. */
-public enum MessageType {
-    /** Message type just for debugging */
-    HELLO_MSG,
+import java.util.UUID
 
-    /** Request file from remote node */
-    FILE_REQUEST,
+import ru.avplatonov.keter.core.discovery.NodeId
+import ru.avplatonov.keter.core.discovery.messaging.{Message, MessageType}
+import ru.avplatonov.keter.core.storage.FileDescriptor
 
-    /** Exchange file indexes message */
-    INDEXES_EXCHANGE
+case class ExchangeFileIndexesMessage(index: FilesIndex) extends Message {
+    override val `type`: MessageType = MessageType.INDEXES_EXCHANGE
+    override val id: String = UUID.randomUUID().toString
+}
+
+trait FilesIndex {
+    def localNodeId: NodeId
+
+    def getNodeId(desc: FileDescriptor): NodeId
+
+    def merge(other: FilesIndex): FilesIndex
+
+    def index(desc: FileDescriptor, from: NodeId): Unit
+
+    def remove(of: NodeId): Unit
 }
