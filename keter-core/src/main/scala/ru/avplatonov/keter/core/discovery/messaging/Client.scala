@@ -49,13 +49,21 @@ class Client(settings: Client.Settings) {
     /** */
     def send(message: Message): Unit = {
         logger.debug(s"Sending message to server with type ${message.`type`} [$message]")
+        send(os => {
+            os.writeInt(message.`type`.ordinal())
+            os.write(Message.serialize(message))
+        })
+    }
+
+    /** */
+    def send(f: DataOutputStream => Unit): Unit = {
+        logger.debug(s"Sending data to server")
         try {
             resource.managed(socket())
                 .flatMap(s => resource.managed(s.getOutputStream))
                 .flatMap(oos => resource.managed(new DataOutputStream(oos))) foreach { os =>
 
-                os.writeInt(message.`type`.ordinal())
-                os.write(Message.serialize(message))
+                f(os)
                 os.flush()
             }
         } catch {

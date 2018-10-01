@@ -62,6 +62,8 @@ object LocalFileDescriptorParser extends DescriptorParser[LocalFileDescriptor] {
 }
 
 object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
+    def sizeOf(file: LocalFileDescriptor): Long = ???
+
     /**
       * Checks existing file in File System by descriptor.
       *
