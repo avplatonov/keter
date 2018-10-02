@@ -144,13 +144,18 @@ case class NettyServerMngr(port: Int,
     private class MessagesDecoder() extends ByteToMessageDecoder {
         /** */
         override def decode(context: ChannelHandlerContext, buf: ByteBuf, list: util.List[AnyRef]): Unit = {
-            val bytesInBuffer = buf.readableBytes()
-            while(bytesInBuffer >= 4) {
+            var bytesInBuffer = buf.readableBytes()
+            var break = false
+            while(bytesInBuffer >= 4 && !break) {
                 val msgType = msgTypeMapping(buf.getInt(buf.readerIndex()))
-                if(bytesInBuffer == 4 + Message.sizeof(msgType)) {
+                if(bytesInBuffer >= 4 + Message.sizeof(msgType)) {
                     buf.readInt()
                     val msg = Message.read(msgType, buf)
+                    logger.debug(s"Read message $msg")
                     list.add(msg)
+                    bytesInBuffer = buf.readableBytes()
+                } else {
+                    break = true
                 }
             }
         }

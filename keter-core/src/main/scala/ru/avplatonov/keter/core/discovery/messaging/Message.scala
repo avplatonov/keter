@@ -17,9 +17,11 @@
 
 package ru.avplatonov.keter.core.discovery.messaging
 
+import java.io.{ByteArrayOutputStream, DataOutputStream}
 import java.util.UUID
 
 import io.netty.buffer.ByteBuf
+import ru.avplatonov.keter.core.discovery.NodeId
 
 /** Message decoding i-face.
   * TODO: it's a creepy code. We need to replace custom message serialization to protobuf or other frameforks.
@@ -28,32 +30,40 @@ object Message {
     /** */
     def read(messageType: MessageType, buf: ByteBuf): Message = messageType match {
         case MessageType.HELLO_MSG =>
-        HelloMessage()
+            HelloMessage(NodeId(buf.readLong()))
     }
 
     /** */
-    def serialize(msg: Message): Array[Byte] = msg.`type` match {
-        case MessageType.HELLO_MSG =>
-        Array()
-        //skip wiring
+    def serialize(msg: Message): Array[Byte] = {
+        val bos = new ByteArrayOutputStream()
+        val dos = new DataOutputStream(bos)
+        dos.writeLong(msg.from.value)
+
+        msg.`type` match {
+            case MessageType.HELLO_MSG =>
+            //skip wiring
+        }
+        dos.flush()
+        bos.toByteArray
     }
 
     /** */
-    def sizeof(messageType: MessageType): Int = messageType match {
+    def sizeof(messageType: MessageType): Int = 8 + (messageType match {
         case MessageType.HELLO_MSG => 0
-    }
+    })
 }
 
-/***
+/** *
   * System message.
   */
 trait Message {
     val `type`: MessageType
     val id: String
+    val from: NodeId
 }
 
 /** Just for debugging. */
-case class HelloMessage() extends Message {
+case class HelloMessage(from: NodeId) extends Message {
     override val `type`: MessageType = MessageType.HELLO_MSG
     override val id: String = UUID.randomUUID().toString
 }

@@ -23,7 +23,7 @@ import ru.avplatonov.keter.core.discovery.NodeId
 import ru.avplatonov.keter.core.discovery.messaging.{Message, MessageType}
 import ru.avplatonov.keter.core.storage.FileDescriptor
 
-case class ExchangeFileIndexesMessage(index: FilesIndex) extends Message {
+case class ExchangeFileIndexesMessage(index: FilesIndex, from: NodeId) extends Message {
     override val `type`: MessageType = MessageType.INDEXES_EXCHANGE
     override val id: String = UUID.randomUUID().toString
 }

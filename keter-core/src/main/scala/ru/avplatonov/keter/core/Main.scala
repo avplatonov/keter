@@ -58,7 +58,7 @@ object Main {
         var i = 0
         val client = new Client(Client.Settings(serverHost = "127.0.0.1", serverPort = 8081))
         while (i < 10) {
-            client.send(HelloMessage())
+            client.send(HelloMessage(service.getLocalNode.get.id))
             i = i + 1
         }
         Thread.sleep(TimeUnit.SECONDS.toMillis(1))

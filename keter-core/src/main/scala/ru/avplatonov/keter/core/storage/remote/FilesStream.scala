@@ -26,7 +26,7 @@ import java.util.concurrent.{ConcurrentLinkedQueue, Executors, LinkedBlockingQue
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.commons.io.IOUtils
 import ru.avplatonov.keter.core.discovery.messaging.{Client, Message, MessageType}
-import ru.avplatonov.keter.core.discovery.{DiscoveryService, RemoteNode}
+import ru.avplatonov.keter.core.discovery.{DiscoveryService, NodeId, RemoteNode}
 import ru.avplatonov.keter.core.storage.FileDescriptor
 import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFilesStorage}
 
@@ -41,7 +41,7 @@ trait RemoteFiles {
     def get(): Try[List[(FileDescriptor, File)]]
 }
 
-case class DownloadFileMessage(files: List[FileDescriptor], listenerPort: Int) extends Message {
+case class DownloadFileMessage(files: List[FileDescriptor], listenerPort: Int, from: NodeId) extends Message {
     override val `type`: MessageType = MessageType.FILE_REQUEST
     override val id: String = UUID.randomUUID().toString
 }
@@ -100,7 +100,7 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
         val fut = Future[List[(FileDescriptor, File)]]({
             val port = getFreePort()
             try {
-                from.sendMsg(DownloadFileMessage(files, port))
+                from.sendMsg(DownloadFileMessage(files, port, discoveryService.getLocalNode().get.id))
                 resource.managed(new ServerSocket(port))
                     .flatMap(s => resource.managed(s.accept()))
                     .flatMap(s => resource.managed(s.getInputStream))
