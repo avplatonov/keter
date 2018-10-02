@@ -35,19 +35,42 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
+case class DownloadedFile(originalDescriptor: FileDescriptor, file: File)
+
+/**
+  * Remote files abstraction.
+  * Just wrapper for future.
+  */
 trait RemoteFiles {
+    /**
+      * @return true if files was downloaded.
+      */
     def isReady: Boolean
 
-    def get(): Try[List[(FileDescriptor, File)]]
+    /**
+      * Awaits files and return downloaded files list.
+      *
+      * @return downloaded files list.
+      */
+    def get(): Try[List[DownloadedFile]]
 }
 
+/**
+  * Request for sending files to current node.
+  *
+  * @param files list of remote files.
+  * @param listenerPort port of downloader.
+  * @param from current node id.
+  */
 case class DownloadFileMessage(files: List[FileDescriptor], listenerPort: Int, from: NodeId) extends Message {
     override val `type`: MessageType = MessageType.FILE_REQUEST
     override val id: String = UUID.randomUUID().toString
 }
 
+/** */
 object FilesStream {
 
+    /** */
     case class Settings(
         savingDirectory: Path,
         downloadPortsFrom: Int,
@@ -57,28 +80,45 @@ object FilesStream {
 
 }
 
+/** Future with starting time. */
 case class SendingFileFuture(startSendingTs: Long, fut: Future[Unit])
 
+/**  */
 case class DownloadTarget(host: String, port: Int)
 
+/**
+  * Abstraction for files exchanging.
+  */
 case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream.Settings) {
+    /** Ports for files downloading. */
     private val availablePorts = new LinkedBlockingQueue[Int]((settings.downloadPortsFrom to settings.downloadPortsTo).asJava)
 
+    /** Download files pool. */
     private val downloadPool = Executors.newFixedThreadPool(settings.downloadPortsFrom - settings.downloadPortsTo + 1,
         new ThreadFactoryBuilder()
             .setNameFormat(s"download-files-stream-pool-[${settings.downloadPortsFrom}:${settings.downloadPortsTo}]-%d")
             .build())
 
+    /** Sending files pool. */
     private val sendingPool = Executors.newFixedThreadPool(settings.sendingPoolSize, new ThreadFactoryBuilder()
         .setNameFormat(s"sending-files-stream-pool-[${settings.downloadPortsFrom}:${settings.downloadPortsTo}]-%d")
         .build())
 
+    /** */
     private val downloadExecutionContext = ExecutionContext.fromExecutor(downloadPool)
+    /** */
     private val sendingExecutionContext = ExecutionContext.fromExecutor(sendingPool)
 
     //TODO: create watching to sending queue and add fut to it
     private val sendingQueue = new ConcurrentLinkedQueue[SendingFileFuture]()
 
+    /**
+      * Send files from LocalFS to host:port
+      *
+      * @param files files list.
+      * @param to target host port.
+      * @return awaitable future.
+      */
     def send(files: List[LocalFileDescriptor], to: DownloadTarget): Future[Unit] = {
         Future({
             new Client(Client.Settings(serverHost = to.host, serverPort = to.port)).send(os => {
@@ -89,15 +129,28 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
         })(sendingExecutionContext)
     }
 
-    private def sendFile(desc: LocalFileDescriptor, to: OutputStream): Unit = {
+    /**
+      * Send file to output stream.
+      *
+      * @param desc local file desc.
+      * @param out out.
+      */
+    private def sendFile(desc: LocalFileDescriptor, out: OutputStream): Unit = {
         resource.managed(new FileInputStream(desc.filepath.toFile)) foreach { from =>
-            IOUtils.copyLarge(from, to)
+            IOUtils.copyLarge(from, out)
         }
     }
 
+    /**
+      * Send request to remote node with list of files and open socket on free port for files awaiting.
+      *
+      * @param files files list.
+      * @param from remote node with files.
+      * @return remote files wrapper.
+      */
     def download(files: List[FileDescriptor], from: RemoteNode): RemoteFiles = {
         val randomSuffix = UUID.randomUUID().toString
-        val fut = Future[List[(FileDescriptor, File)]]({
+        val fut = Future[List[DownloadedFile]]({
             val port = getFreePort()
             try {
                 from.sendMsg(DownloadFileMessage(files, port, discoveryService.getLocalNode().get.id))
@@ -105,7 +158,7 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
                     .flatMap(s => resource.managed(s.accept()))
                     .flatMap(s => resource.managed(s.getInputStream))
                     .foreach(saveFiles(_, files, randomSuffix))
-                files.map(d => d -> downloadedFile(d, randomSuffix))
+                files.map(d => DownloadedFile(d, downloadedFile(d, randomSuffix)))
             }
             finally {
                 releasePort(port)
@@ -115,7 +168,7 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
         new RemoteFiles {
             override def isReady: Boolean = fut.isCompleted
 
-            override def get(): Try[List[(FileDescriptor, File)]] = {
+            override def get(): Try[List[DownloadedFile]] = {
                 while (!isReady) {
                     Thread.sleep((1 second).toMillis)
                 }
@@ -128,11 +181,24 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
         }
     }
 
+    /**
+      * @return request new port for files awaiting.
+      */
     private def getFreePort(): Int = availablePorts.poll()
 
+    /**
+      * @param port release listening port.
+      */
     private def releasePort(port: Int) = availablePorts.put(port)
 
     //TODO: we should consider that files may be deleted in node or something other - we should implement error protocol
+    /**
+      * Save files from input stream.
+      *
+      * @param in input stream.
+      * @param fileNames file names in stream.
+      * @param nameSuffix suffix for temp file.
+      */
     private def saveFiles(in: InputStream, fileNames: List[FileDescriptor], nameSuffix: String): Unit = {
         resource.managed(new DataInputStream(in)) foreach { dis =>
             val countOfFiles = dis.readInt()
@@ -145,12 +211,23 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
         }
     }
 
+    /**
+      * Saves file from input stream.
+      *
+      * @param name file name.
+      * @param size size of file in stream.
+      * @param from input stream.
+      * @param suffix suffix for temp file.
+      */
     private def saveFile(name: FileDescriptor, size: Long, from: DataInputStream, suffix: String): Unit = {
         resource.managed(new FileOutputStream(downloadedFile(name, suffix))) foreach { to =>
             IOUtils.copyLarge(from, to, 0, size)
         }
     }
 
+    /**
+      * @return filename for temp file.
+      */
     private def downloadedFile(desc: FileDescriptor, suffix: String): File =
         settings.savingDirectory.resolve(s"${desc.key}-$suffix").toFile
 }
