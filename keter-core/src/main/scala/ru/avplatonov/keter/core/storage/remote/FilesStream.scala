@@ -90,6 +90,8 @@ case class DownloadTarget(host: String, port: Int)
   * Abstraction for files exchanging.
   */
 case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream.Settings) {
+    assert(settings.downloadPortsTo - settings.downloadPortsFrom > 0)
+
     /** Ports for files downloading. */
     private val availablePorts = new LinkedBlockingQueue[Int]((settings.downloadPortsFrom to settings.downloadPortsTo).asJava)
 
