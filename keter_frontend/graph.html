@@ -1,0 +1,44 @@
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Keter graphs</title>
+        <link rel="stylesheet" href="styles/demo.css" type="text/css" media="screen">
+        <link rel="stylesheet" href="styles/demo-print.css" type="text/css" media="print">
+        <script src="scripts/raphael.js" type="text/javascript" charset="utf-8"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+        <style type="text/css" media="screen">
+            #holder {
+                -moz-border-radius: 10px;
+                -webkit-border-radius: 10px;
+                border: solid 1px #333;
+            }
+            p {
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <p>Keter_graph</p>
+        <div id="holder"></div>
+        <!--<button id="add_button">
+          Add element
+        </button>-->
+        <form name="add_node">
+    <!-- добавление ноды -->
+    <table>
+        <tr><td><b>node name:<b></td>
+            <td><input name="node_name" size=20
+                  onblur="this.value=this.value.toUpperCase()"></td></tr>
+        <tr><td><b>number of inputs:<b></td>
+            <td><input name="node_num_input" type="number" size="3" min="1" max="10" value="1"></td></tr>
+        <tr><td><b>number of outputs:<b></td>
+            <td><input name="node_num_output" type="number" size="3" min="1" max="10" value="1"></td></tr>
+    </table>
+    <!-- кнопки готовности и сброса -->
+    <input type="button" id="btn_done" value="add node">
+    <input type='button' id="btn_delete" value="delete">
+</form>
+    </body>
+    <script src="scripts/graph_script.js" type="text/javascript" charset="utf-8"></script>
+</html>
