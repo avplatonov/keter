@@ -20,7 +20,7 @@ package ru.avplatonov.keter.core
 import java.util.concurrent.TimeUnit
 
 import org.apache.curator.retry.ExponentialBackoffRetry
-import ru.avplatonov.keter.core.discovery.messaging.{Client, HelloMessage, MessageType}
+import ru.avplatonov.keter.core.discovery.messaging.{Client, HelloMessage}
 import ru.avplatonov.keter.core.discovery.{Node, Topology, TopologyDiff, ZookeeperDiscoveryService}
 
 /**
@@ -49,7 +49,7 @@ object Main {
 
         service.start()
         service.getLocalNode.foreach(localNode => {
-            localNode.registerProcessor(MessageType.HELLO_MSG, msg => {
+            localNode.registerProcessor(classOf[HelloMessage], msg => {
                 println("Hello message")
             })
         })

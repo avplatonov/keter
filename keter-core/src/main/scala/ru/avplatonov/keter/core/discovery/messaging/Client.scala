@@ -48,9 +48,8 @@ class Client(settings: Client.Settings) {
 
     /** */
     def send(message: Message): Unit = {
-        logger.debug(s"Sending message to server with type ${message.`type`} [$message]")
+        logger.debug(s"Sending message to server with type ${message.getClass.getSimpleName} [$message]")
         send(os => {
-            os.writeInt(message.`type`.ordinal())
             os.write(Message.serialize(message))
         })
     }

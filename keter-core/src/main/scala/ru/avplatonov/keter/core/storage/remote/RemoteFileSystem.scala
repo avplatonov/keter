@@ -17,8 +17,28 @@
 
 package ru.avplatonov.keter.core.storage.remote
 
-import ru.avplatonov.keter.core.discovery.messaging.{Message, MessageType}
+import ru.avplatonov.keter.core.discovery.messaging.Message
 import ru.avplatonov.keter.core.discovery.{DiscoveryService, Topology, TopologyDiff}
+import ru.avplatonov.keter.core.messages.Messages
+import ru.avplatonov.keter.core.storage.{FileDescriptor, PathScheme}
+
+import scala.collection.JavaConverters._
+
+case class RemoteFileDescriptor(path: List[String], key: String, isDir: Option[Boolean])
+    extends FileDescriptor {
+
+    /** Type of file system. */
+    override val scheme: PathScheme = PathScheme.remote
+
+    override def toProto: Messages.FileDescriptor = {
+        val builder = Messages.FileDescriptor.newBuilder()
+        builder.setKey(key)
+        builder.setIsDirectory(isDir.getOrElse(false))
+        builder.addAllPath(path.asJava)
+        builder.build()
+    }
+}
+
 
 class RemoteFileSystem(discovery: DiscoveryService) {
     private var localIndex: FilesIndex = ???
@@ -27,7 +47,7 @@ class RemoteFileSystem(discovery: DiscoveryService) {
     def start(): Unit = {
         localIndex = collectLocalIndex()
         discovery.subscribe(topologyChange)
-        discovery.getLocalNode().get.registerProcessor(MessageType.FILE_REQUEST, onFileRequest)
+        discovery.getLocalNode().get.registerProcessor(classOf[DownloadFileMessage], onFileRequest)
         val otherIndexes = indexesExchange(localIndex)
         index = otherIndexes.foldLeft(localIndex)((i1, i2) => i1.merge(i2))
     }
@@ -35,7 +55,7 @@ class RemoteFileSystem(discovery: DiscoveryService) {
     private def collectLocalIndex(): FilesIndex = ???
 
     private def indexesExchange(index: FilesIndex): Seq[FilesIndex] = {
-        discovery.getLocalNode().get.registerProcessor(MessageType.INDEXES_EXCHANGE, onExchange)
+        discovery.getLocalNode().get.registerProcessor(classOf[ExchangeFileIndexesMessage], onExchange)
         ???
     }
 

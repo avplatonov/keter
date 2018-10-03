@@ -22,48 +22,78 @@ import java.util.UUID
 
 import io.netty.buffer.ByteBuf
 import ru.avplatonov.keter.core.discovery.NodeId
+import ru.avplatonov.keter.core.messages.Messages
+import ru.avplatonov.keter.core.storage.remote.{DownloadFileMessage, RemoteFileDescriptor}
+
+import scala.collection.JavaConverters._
 
 /** Message decoding i-face.
   * TODO: it's a creepy code. We need to replace custom message serialization to protobuf or other frameforks.
   */
 object Message {
     /** */
-    def read(messageType: MessageType, buf: ByteBuf): Message = messageType match {
-        case MessageType.HELLO_MSG =>
-            HelloMessage(NodeId(buf.readLong()))
+    def read(buf: ByteBuf): Message = {
+        val msgSize = buf.readInt()
+        val bytes: Array[Byte] = Array.fill(msgSize)(0)
+        buf.readBytes(bytes)
+
+        val msg = Messages.Message.parseFrom(bytes)
+        val from = NodeId(msg.getFrom.getId)
+
+        if (msg.hasHelloMsg)
+            return HelloMessage(from)
+        if (msg.hasFilesRequest) {
+            val filesRequest = msg.getFilesRequest
+            val filesList = filesRequest.getFilesList.asScala.map(file => {
+                RemoteFileDescriptor(
+                    path = file.getPathList.asByteStringList().asScala.map(_.toString).toList,
+                    key = file.getKey,
+                    isDir = Some(file.getIsDirectory)
+                )
+            }).toList
+            return DownloadFileMessage(filesList, filesRequest.getListeningPort, from)
+        }
+
+        throw new NotImplementedError()
     }
 
     /** */
     def serialize(msg: Message): Array[Byte] = {
-        val bos = new ByteArrayOutputStream()
-        val dos = new DataOutputStream(bos)
-        dos.writeLong(msg.from.value)
+        val packageOS = new ByteArrayOutputStream()
+        val packageDOS = new DataOutputStream(packageOS)
 
-        msg.`type` match {
-            case MessageType.HELLO_MSG =>
-            //skip wiring
+        val msgBuilder = Messages.Message.newBuilder()
+        msgBuilder.setFrom(msg.from.toProto)
+
+        msg match {
+            case _: HelloMessage =>
+                msgBuilder.setHelloMsg(Messages.HelloMessage.newBuilder().build())
+            case m: DownloadFileMessage =>
+                val filesReqBuilder = Messages.FilesRequestMessage.newBuilder()
+                m.files.foreach(desc => filesReqBuilder.addFiles(desc.toProto))
+                msgBuilder.setFilesRequest(filesReqBuilder
+                    .setListeningPort(m.listenerPort)
+                    .build())
         }
-        dos.flush()
-        bos.toByteArray
-    }
 
-    /** */
-    def sizeof(messageType: MessageType): Int = 8 + (messageType match {
-        case MessageType.HELLO_MSG => 0
-    })
+        val msgBytes = msgBuilder.build().toByteArray
+        packageDOS.writeInt(msgBytes.length)
+        packageDOS.write(msgBytes)
+        packageDOS.flush()
+        packageOS.toByteArray
+    }
 }
 
 /** *
   * System message.
   */
 trait Message {
-    val `type`: MessageType
     val id: String
     val from: NodeId
 }
 
 /** Just for debugging. */
 case class HelloMessage(from: NodeId) extends Message {
-    override val `type`: MessageType = MessageType.HELLO_MSG
     override val id: String = UUID.randomUUID().toString
 }
+

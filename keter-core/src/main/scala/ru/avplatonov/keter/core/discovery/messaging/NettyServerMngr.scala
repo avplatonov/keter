@@ -73,9 +73,6 @@ case class NettyServerMngr(port: Int,
     private val workerError = new AtomicReference[Exception]()
 
     /** */
-    private val msgTypeMapping = MessageType.values().map(x => x.ordinal() -> x).toMap
-
-    /** */
     private val serverPool = Executors.newSingleThreadExecutor(
         new ThreadFactoryBuilder()
             .setNameFormat("nio-server-main-%d")
@@ -147,10 +144,9 @@ case class NettyServerMngr(port: Int,
             var bytesInBuffer = buf.readableBytes()
             var break = false
             while(bytesInBuffer >= 4 && !break) {
-                val msgType = msgTypeMapping(buf.getInt(buf.readerIndex()))
-                if(bytesInBuffer >= 4 + Message.sizeof(msgType)) {
-                    buf.readInt()
-                    val msg = Message.read(msgType, buf)
+                val msgSize = buf.getInt(buf.readerIndex())
+                if(bytesInBuffer >= 4 + msgSize) {
+                    val msg = Message.read(buf)
                     logger.debug(s"Read message $msg")
                     list.add(msg)
                     bytesInBuffer = buf.readableBytes()
@@ -173,7 +169,7 @@ case class NettyServerMngr(port: Int,
         override def channelRead(ctx: ChannelHandlerContext, chMsg: scala.Any): Unit = {
             try {
                 val msg = chMsg.asInstanceOf[Message]
-                logger.debug(s"New message of type ${msg.`type`} [$msg]")
+                logger.debug(s"New message of type ${msg.getClass.getSimpleName} [$msg]")
                 messageProcessor(msg)
             } finally {
                 ctx.close()

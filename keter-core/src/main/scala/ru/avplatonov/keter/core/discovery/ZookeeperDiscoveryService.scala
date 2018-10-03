@@ -238,10 +238,15 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
         watchdogPool.submit(new Runnable {
             override def run(): Unit = {
                 while (isStarted) {
-                    Thread.sleep(settings.discoveryTimeout.toMillis)
-                    if ((System.currentTimeMillis() - lastDiscoveringTime.get()) > settings.discoveryTimeout.toMillis) {
-                        logger.info("Discovering timeout. Check cluster status.")
-                        discoverNodes()
+                    try {
+                        Thread.sleep(settings.discoveryTimeout.toMillis)
+                        if ((System.currentTimeMillis() - lastDiscoveringTime.get()) > settings.discoveryTimeout.toMillis) {
+                            logger.info("Discovering timeout. Check cluster status.")
+                            discoverNodes()
+                        }
+                    } catch {
+                        case e: InterruptedException =>
+                            logger.warn("Someone interrupt watching thread", e)
                     }
                 }
             }
@@ -306,8 +311,12 @@ case class ZookeeperDiscoveryService(settings: ZookeeperDiscoveryService.Setting
                 }
 
                 logger.info("Shutdown listeners pool.")
-                listenersPool.shutdown()
+                listenersPool.shutdownNow()
                 listenersPool.awaitTermination(1, TimeUnit.HOURS)
+
+                logger.info("Shutdown watchdog pool.")
+                watchdogPool.shutdownNow()
+                watchdogPool.awaitTermination(1, TimeUnit.HOURS)
 
                 if (localNode != null) {
                     logger.info("Stopping local node server.")

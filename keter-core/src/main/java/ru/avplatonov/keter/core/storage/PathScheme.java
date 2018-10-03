@@ -26,7 +26,9 @@ public enum PathScheme {
     /** Path in Helix. */
     zookeeper("zookeeper"),
     /** Web url as path. */
-    url("http");
+    url("http"),
+    /** on remote node */
+    remote("remote");
 
     public final String name;
 

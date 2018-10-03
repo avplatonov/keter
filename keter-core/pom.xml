@@ -17,6 +17,7 @@
         <commons.io.version>2.6</commons.io.version>
         <slf4j.api.version>1.7.25</slf4j.api.version>
         <slf4j.log4j.version>1.7.25</slf4j.log4j.version>
+        <protobuf.version>3.2.0</protobuf.version>
     </properties>
 
     <parent>
@@ -28,6 +29,37 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.github.os72</groupId>
+                <artifactId>protoc-jar-maven-plugin</artifactId>
+                <version>3.2.0.1</version>
+
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+
+                        <configuration>
+                            <!-- <includeDirectories> <include>src/main/protobuf</include> </includeDirectories> -->
+                            <inputDirectories>
+                                <include>src/main/protobuf</include>
+                            </inputDirectories>
+
+                            <!-- Create java files. And put them in the src/main/java directory. -->
+
+                            <outputTargets>
+                                <outputTarget>
+                                    <type>java</type>
+                                    <outputDirectory>src/main/proto_src</outputDirectory>
+                                </outputTarget>
+                            </outputTargets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -102,6 +134,12 @@
             <artifactId>curator-test</artifactId>
             <scope>test</scope>
             <version>${zk.test.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
         </dependency>
     </dependencies>
 </project>

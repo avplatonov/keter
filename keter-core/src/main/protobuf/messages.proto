@@ -1,0 +1,46 @@
+syntax = "proto2";
+
+// This is the package where the java source code will be placed.
+
+option java_package = "ru.avplatonov.keter.core.messages";
+
+message NodeId {
+    required int64 id = 1;
+}
+
+message Message {
+    enum Type {
+        HELLO_MSG = 1;
+        FILES_REQUEST = 2;
+        EXCHANGE_FILE_INDEXES = 3;
+    }
+
+    required NodeId from = 1;
+
+    optional HelloMessage hello_msg = 100;
+    optional FilesRequestMessage files_request = 101;
+}
+
+//system testing messages
+
+message HelloMessage {
+}
+
+//remote FS messages
+
+message FileDescriptor {
+    required string key = 1;
+    repeated string path = 2;
+    optional bool isDirectory = 3 [default = false];
+}
+
+message FilesRequestMessage {
+    repeated FileDescriptor files = 1;
+    required int32 listeningPort = 2;
+}
+
+//TODO: fill message))
+message ExchangeFileIndexesMessage {
+    required NodeId from = 1;
+
+}

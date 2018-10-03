@@ -19,7 +19,8 @@ package ru.avplatonov.keter.core.discovery
 
 import java.util.concurrent.ConcurrentHashMap
 
-import ru.avplatonov.keter.core.discovery.messaging.{Client, Message, MessageType, NettyServerMngr}
+import ru.avplatonov.keter.core.discovery.messaging.{Client, Message, NettyServerMngr}
+import ru.avplatonov.keter.core.messages.Messages
 import ru.avplatonov.keter.core.util.SerializedSettings
 
 import scala.collection.JavaConverters._
@@ -27,7 +28,11 @@ import scala.collection.JavaConverters._
 /**
   * Node id in topology.
   */
-case class NodeId(value: Long)
+case class NodeId(value: Long) {
+    def toProto: Messages.NodeId = Messages.NodeId.newBuilder()
+        .setId(value)
+        .build()
+}
 
 /**
   * Abstract node in topology.
@@ -80,7 +85,7 @@ case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
       * Map of message processors (callbacks).
       * Message processor is implemented by some sub system in core for specific message of sub-system.
       */
-    private val msgProcessors = new ConcurrentHashMap[MessageType, Message => Unit]().asScala
+    private val msgProcessors = new ConcurrentHashMap[Class[_ <: Message], Message => Unit]().asScala
 
     /** */
     override val isLocal: Boolean = true
@@ -102,8 +107,8 @@ case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
     /** */
     override def processMsg(message: Message): Unit =
         msgProcessors.getOrElse(
-            message.`type`,
-            throw new RuntimeException(s"Cannot find registered processor for message with type '${message.`type`}'")
+            message.getClass,
+            throw new RuntimeException(s"Cannot find registered processor for message with type '${message.getClass.getSimpleName}'")
         ).apply(message)
 
     /***
@@ -112,7 +117,7 @@ case class LocalNode(id: NodeId, settings: Node.Settings) extends Node {
       * @param msgType message type.
       * @param proc processor.
       */
-    def registerProcessor(msgType: MessageType, proc: Message => Unit): Unit =
+    def registerProcessor(msgType: Class[_ <: Message], proc: Message => Unit): Unit =
         msgProcessors.put(msgType, proc)
 }
 

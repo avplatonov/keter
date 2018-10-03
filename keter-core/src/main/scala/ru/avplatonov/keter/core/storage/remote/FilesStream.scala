@@ -25,7 +25,7 @@ import java.util.concurrent.{ConcurrentLinkedQueue, Executors, LinkedBlockingQue
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.commons.io.IOUtils
-import ru.avplatonov.keter.core.discovery.messaging.{Client, Message, MessageType}
+import ru.avplatonov.keter.core.discovery.messaging.{Client, Message}
 import ru.avplatonov.keter.core.discovery.{DiscoveryService, NodeId, RemoteNode}
 import ru.avplatonov.keter.core.storage.FileDescriptor
 import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFilesStorage}
@@ -63,7 +63,6 @@ trait RemoteFiles {
   * @param from current node id.
   */
 case class DownloadFileMessage(files: List[FileDescriptor], listenerPort: Int, from: NodeId) extends Message {
-    override val `type`: MessageType = MessageType.FILE_REQUEST
     override val id: String = UUID.randomUUID().toString
 }
 

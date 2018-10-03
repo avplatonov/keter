@@ -20,11 +20,14 @@ package ru.avplatonov.keter.core.storage
 import java.io.{InputStream, OutputStream}
 
 import resource.ManagedResource
+import ru.avplatonov.keter.core.messages.Messages
 
 /**
   * Generic representation of file in file system.
   */
 abstract class FileDescriptor {
+    def toProto: Messages.FileDescriptor = throw new NotImplementedError()
+
     /** Type of file system. */
     val scheme: PathScheme
 
