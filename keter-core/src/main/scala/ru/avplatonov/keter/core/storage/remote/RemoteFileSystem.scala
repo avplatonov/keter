@@ -39,17 +39,21 @@ case class RemoteFileDescriptor(path: List[String], key: String, isDir: Option[B
     }
 }
 
-
 class RemoteFileSystem(discovery: DiscoveryService) {
     private var localIndex: FilesIndex = ???
     private var index: FilesIndex = ???
+    private var filesStream: FilesStream = ???
 
     def start(): Unit = {
         localIndex = collectLocalIndex()
         discovery.subscribe(topologyChange)
-        discovery.getLocalNode().get.registerProcessor(classOf[DownloadFileMessage], onFileRequest)
         val otherIndexes = indexesExchange(localIndex)
         index = otherIndexes.foldLeft(localIndex)((i1, i2) => i1.merge(i2))
+        filesStream.start()
+    }
+
+    def stop(): Unit = {
+        filesStream.stop()
     }
 
     private def collectLocalIndex(): FilesIndex = ???
@@ -62,6 +66,4 @@ class RemoteFileSystem(discovery: DiscoveryService) {
     private def topologyChange(top: Topology, diff: TopologyDiff) = ???
 
     private def onExchange(msg: Message) = ???
-
-    private def onFileRequest(msg: Message) = ???
 }

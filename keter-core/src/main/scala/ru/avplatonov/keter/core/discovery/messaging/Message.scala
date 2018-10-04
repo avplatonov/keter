@@ -23,7 +23,7 @@ import java.util.UUID
 import io.netty.buffer.ByteBuf
 import ru.avplatonov.keter.core.discovery.NodeId
 import ru.avplatonov.keter.core.messages.Messages
-import ru.avplatonov.keter.core.storage.remote.{DownloadFileMessage, RemoteFileDescriptor}
+import ru.avplatonov.keter.core.storage.remote.{DownloadFilesMessage, RemoteFileDescriptor}
 
 import scala.collection.JavaConverters._
 
@@ -51,7 +51,7 @@ object Message {
                     isDir = Some(file.getIsDirectory)
                 )
             }).toList
-            return DownloadFileMessage(filesList, filesRequest.getListeningPort, from)
+            return DownloadFilesMessage(filesList, filesRequest.getListeningPort, from)
         }
 
         throw new NotImplementedError()
@@ -68,7 +68,7 @@ object Message {
         msg match {
             case _: HelloMessage =>
                 msgBuilder.setHelloMsg(Messages.HelloMessage.newBuilder().build())
-            case m: DownloadFileMessage =>
+            case m: DownloadFilesMessage =>
                 val filesReqBuilder = Messages.FilesRequestMessage.newBuilder()
                 m.files.foreach(desc => filesReqBuilder.addFiles(desc.toProto))
                 msgBuilder.setFilesRequest(filesReqBuilder
