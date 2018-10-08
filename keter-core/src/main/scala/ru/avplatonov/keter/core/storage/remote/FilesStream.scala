@@ -100,7 +100,7 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
     private val availablePorts = new LinkedBlockingQueue[Int]((settings.downloadPortsFrom to settings.downloadPortsTo).asJava)
 
     /** Download files pool. */
-    private val downloadPool = Executors.newFixedThreadPool(settings.downloadPortsFrom - settings.downloadPortsTo + 1,
+    private val downloadPool = Executors.newFixedThreadPool(settings.downloadPortsTo - settings.downloadPortsFrom + 1,
         new ThreadFactoryBuilder()
             .setNameFormat(s"download-files-stream-pool-[${settings.downloadPortsFrom}:${settings.downloadPortsTo}]-%d")
             .build())

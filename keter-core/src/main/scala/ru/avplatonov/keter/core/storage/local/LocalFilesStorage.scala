@@ -50,7 +50,7 @@ object LocalFileDescriptorParser extends DescriptorParser[LocalFileDescriptor] {
         val localPath = path.replaceFirst(prefixStr, "/")
         val jpath = Paths.get(localPath)
         val tokens = jpath.iterator().asScala.map(_.toString).toList
-        assert(tokens.size > 1, "path should consists of at least two elements")
+        assert(tokens.size > 0, "path should consists of at least one elements")
 
         LocalFileDescriptor(
             filepath = jpath,
@@ -62,7 +62,7 @@ object LocalFileDescriptorParser extends DescriptorParser[LocalFileDescriptor] {
 }
 
 object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
-    def sizeOf(file: LocalFileDescriptor): Long = ???
+    def sizeOf(file: LocalFileDescriptor): Long = Files.size(file.filepath)
 
     /**
       * Checks existing file in File System by descriptor.

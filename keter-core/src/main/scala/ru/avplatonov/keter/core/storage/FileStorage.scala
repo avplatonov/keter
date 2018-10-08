@@ -22,11 +22,19 @@ import java.io.{InputStream, OutputStream}
 import resource.ManagedResource
 import ru.avplatonov.keter.core.messages.Messages
 
+import scala.collection.JavaConverters._
+
 /**
   * Generic representation of file in file system.
   */
 abstract class FileDescriptor {
-    def toProto: Messages.FileDescriptor = throw new NotImplementedError()
+    def toProto: Messages.FileDescriptor = {
+        val builder = Messages.FileDescriptor.newBuilder()
+        builder.setKey(key)
+        builder.setIsDirectory(isDir.getOrElse(false))
+        builder.addAllPath(path.asJava)
+        builder.build()
+    }
 
     /** Type of file system. */
     val scheme: PathScheme
