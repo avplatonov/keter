@@ -157,7 +157,12 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
       * @return remote files wrapper.
       */
     def download(files: List[FileDescriptor], from: RemoteNode): RemoteFiles = {
-        val randomSuffix = UUID.randomUUID().toString
+        files.find(desc => desc.isDir.getOrElse(false)) match {
+            case Some(dir) => throw DirectoryCopyingException(dir)
+            case None =>
+        }
+
+        val filesWithSuffix = files.map(f => f -> UUID.randomUUID().toString)
         val fut = Future[List[DownloadedFile]]({
             val port = getFreePort()
             try {
@@ -165,8 +170,10 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
                 resource.managed(new ServerSocket(port))
                     .flatMap(s => resource.managed(s.accept()))
                     .flatMap(s => resource.managed(s.getInputStream))
-                    .foreach(saveFiles(_, files, randomSuffix))
-                files.map(d => DownloadedFile(d, downloadedFile(d, randomSuffix)))
+                    .foreach(saveFiles(_, filesWithSuffix))
+                filesWithSuffix.map({
+                    case (file, suffix) => DownloadedFile(file, downloadedFile(file, suffix))
+                })
             }
             finally {
                 releasePort(port)
@@ -256,18 +263,17 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
       * Save files from input stream.
       *
       * @param in         input stream.
-      * @param fileNames  file names in stream.
-      * @param nameSuffix suffix for temp file.
+      * @param filesWithSuffix  file names in stream with unique suffixes.
       */
-    private def saveFiles(in: InputStream, fileNames: List[FileDescriptor], nameSuffix: String): Unit = {
+    private def saveFiles(in: InputStream, filesWithSuffix: List[(FileDescriptor, String)]): Unit = {
         resource.managed(new DataInputStream(in)) foreach {
             dis =>
                 val countOfFiles = dis.readInt()
-                assert(countOfFiles == fileNames.size, "Count of files from remote node should correspond to request")
+                assert(countOfFiles == filesWithSuffix.size, "Count of files from remote node should correspond to request")
                 val fileSizes = (0 until countOfFiles).map(x => dis.readLong()).toList
-                fileNames zip fileSizes foreach {
-                    case (name, size) =>
-                        saveFile(name, size, dis, nameSuffix)
+                filesWithSuffix zip fileSizes foreach {
+                    case ((name, suffix), size) =>
+                        saveFile(name, size, dis, suffix)
                 }
         }
     }
@@ -295,3 +301,7 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
             desc.key
         }-$suffix").toFile
 }
+
+case class DirectoryCopyingException(dir: FileDescriptor) extends RuntimeException(
+    s"Prototol doesn't support directories [${dir.path.mkString("/") + "/" + dir.key}]"
+)

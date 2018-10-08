@@ -46,7 +46,7 @@ object Message {
             val filesRequest = msg.getFilesRequest
             val filesList = filesRequest.getFilesList.asScala.map(file => {
                 RemoteFileDescriptor(
-                    path = file.getPathList.asByteStringList().asScala.map(_.toString).toList,
+                    path = file.getPathList.asByteStringList().asScala.map(_.toStringUtf8).toList,
                     key = file.getKey,
                     isDir = Some(file.getIsDirectory)
                 )
