@@ -40,9 +40,9 @@ object FilesDB {
 trait FilesDB {
     def find(path: String): Option[FilesIndexRow]
 
-    def insert(filesIndexRow: FilesIndexRow): Unit
+    def insert(key: String, filesIndexRow: FilesIndexRow): Unit
 
-    def insert(localFiles: Stream[FilesIndexRow]): Unit
+    def insert(localFiles: Stream[(String, FilesIndexRow)]): Unit
 
     def delete(rowKey: RowKey): Unit
 
@@ -60,9 +60,9 @@ case class FilesSqlDB(driverName: String, connString: String, user: String, pass
 
     override def find(path: String): Option[FilesIndexRow] = ???
 
-    override def insert(filesIndexRow: FilesIndexRow): Unit = ???
+    override def insert(key: String, filesIndexRow: FilesIndexRow): Unit = ???
 
-    override def insert(localFiles: Stream[FilesIndexRow]): Unit = ???
+    override def insert(localFiles: Stream[(String, FilesIndexRow)]): Unit = ???
 
     override def delete(rowKey: RowKey): Unit = ???
 

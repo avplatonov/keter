@@ -164,20 +164,30 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
       * @return all files in dir recursively.
       */
     def scanFiles(dir: Path): Stream[Path] = {
-        val (files, dirs) = dir.toFile.listFiles().filter(_.isHidden).span(_.isFile)
-        dirs.map(_.toPath).toStream #::: dirs.map(_.toPath).toStream.flatMap(scanFiles)
+        if (dir == null)
+            Stream.empty
+        else if (dir.toFile.isFile) {
+            Stream(dir)
+        } else {
+            val (files, dirs) = dir.toFile.listFiles().filterNot(_.isHidden).span(_.isFile)
+            files.map(_.toPath).toStream #::: dirs.map(_.toPath).toStream.flatMap(scanFiles)
+        }
     }
 
     /** */
-    private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit) =
-        if(!ignoreExisting && exists(fileToCheck)) false
+    private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit)
+
+    =
+        if (!ignoreExisting && exists(fileToCheck)) false
         else {
             call
             true
         }
 
     /** */
-    private def toDesc(jpath: Path): LocalFileDescriptor = {
+    private def toDesc(jpath: Path): LocalFileDescriptor
+
+    = {
         LocalFileDescriptorParser.parse(jpath.toString).copy(
             isDir = Some(Files.isDirectory(jpath))
         )

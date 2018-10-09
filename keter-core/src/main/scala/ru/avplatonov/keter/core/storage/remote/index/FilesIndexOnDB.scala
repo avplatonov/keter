@@ -22,19 +22,34 @@ import java.util.concurrent.atomic.AtomicReference
 
 import org.slf4j.LoggerFactory
 import ru.avplatonov.keter.core.discovery.DiscoveryService
+import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
 import ru.avplatonov.keter.core.{discovery, storage}
 
 import scala.util.Random
 
 case class FilesIndexOnDB(db: FilesDB, localWorkingDir: Path, discoveryService: DiscoveryService) extends FilesIndex {
+    assert(localWorkingDir.isAbsolute, "Workdir path should be absolute")
 
     private val logger = LoggerFactory.getLogger(getClass)
 
     private val localIndexRef: AtomicReference[Set[Long]] = new AtomicReference(Set()) //hash codes of all local files
 
-    override def localNodeId: discovery.NodeId = discoveryService.getLocalNode().get.id
+    override def localNodeId: discovery.NodeId = discoveryService.getLocalNodeId().get
 
-    override def rebuildIndex(): Unit = ???
+    override def rebuildIndex(): Unit = {
+        val localFiles: Map[Long, LocalFileDescriptor] = LocalFilesStorage.scanFiles(localWorkingDir).map({
+            case file: Path =>
+                val withoutWDPrefix: String = removeWDPrefix(file.toAbsolutePath.toString)
+                withoutWDPrefix.hashCode.toLong -> LocalFileDescriptorParser.parse(withoutWDPrefix)
+                    .copy(isDir = Some(false))
+        }).toMap
+
+        db.insert(localFiles.values.map(desc => makeIndexKey(desc) -> FilesIndexRow(desc, Set(localNodeId))).toStream)
+        localIndexRef.set(localFiles.keySet)
+    }
+
+    private def removeWDPrefix(str: String): String =
+        str.replaceFirst(localWorkingDir.toString, "/")
 
     override def defineLocation(desc: storage.FileDescriptor): Option[discovery.NodeId] = {
         val key = makeIndexKey(desc)
@@ -42,7 +57,8 @@ case class FilesIndexOnDB(db: FilesDB, localWorkingDir: Path, discoveryService: 
         else db.find(key).map(r => selectRandomElement(r.replicas))
     }
 
-    override def index(desc: storage.FileDescriptor): Unit = db.insert(FilesIndexRow(desc, Set(localNodeId)))
+    override def index(
+        desc: storage.FileDescriptor): Unit = db.insert(makeIndexKey(desc), FilesIndexRow(desc, Set(localNodeId)))
 
     override def remove(target: discovery.NodeId): Unit =
         db.deleteAllFor(target)
@@ -50,8 +66,12 @@ case class FilesIndexOnDB(db: FilesDB, localWorkingDir: Path, discoveryService: 
     override def remove(target: storage.FileDescriptor): Unit =
         db.delete(RowKey(makeIndexKey(target), localNodeId))
 
-    private def makeIndexKey(desc: storage.FileDescriptor): String =
-        s"${desc.path.mkString(",", "/", "")}/${desc.key}"
+    private def makeIndexKey(desc: storage.FileDescriptor): String = {
+        if (desc.path.isEmpty)
+            s"//${desc.key}"
+        else
+            s"//${desc.path.mkString("/")}/${desc.key}"
+    }
 
     private def selectRandomElement[T](set: Set[T]): T = {
         assert(set.nonEmpty)

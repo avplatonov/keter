@@ -65,6 +65,11 @@ trait DiscoveryService {
       * @return local node if service was started.
       */
     def getLocalNode(): Option[LocalNode]
+
+    /**
+      * @return local node id if service was started.
+      */
+    def getLocalNodeId(): Option[NodeId] = getLocalNode().map(_.id)
 }
 
 /**
