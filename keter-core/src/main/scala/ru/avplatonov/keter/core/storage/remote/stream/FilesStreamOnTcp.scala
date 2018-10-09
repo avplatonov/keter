@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote
+package ru.avplatonov.keter.core.storage.remote.stream
 
 import java.io._
 import java.net.ServerSocket
 import java.nio.file.Path
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ConcurrentLinkedQueue, Executors, LinkedBlockingQueue}
+import java.util.concurrent.{ConcurrentLinkedQueue, Executors, LinkedBlockingQueue, TimeoutException}
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.commons.io.IOUtils
@@ -37,26 +36,6 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-case class DownloadedFile(originalDescriptor: FileDescriptor, file: File)
-
-/**
-  * Remote files abstraction.
-  * Just wrapper for future.
-  */
-trait RemoteFiles {
-    /**
-      * @return true if files was downloaded.
-      */
-    def isReady: Boolean
-
-    /**
-      * Awaits files and return downloaded files list.
-      *
-      * @return downloaded files list.
-      */
-    def get(): Try[List[DownloadedFile]]
-}
-
 /**
   * Request for sending files to current node.
   *
@@ -69,7 +48,7 @@ case class DownloadFilesMessage(files: List[FileDescriptor], listenerPort: Int, 
 }
 
 /** */
-object FilesStream {
+object FilesStreamOnTcp {
 
     /** */
     case class Settings(
@@ -77,21 +56,16 @@ object FilesStream {
         workingDirectory: Path, //saved files path
         downloadPortsFrom: Int,
         downloadPortsTo: Int,
-        sendingPoolSize: Int
+        sendingPoolSize: Int,
+        filesAwaitingTimeout: Duration = Duration.Inf
     )
 
 }
 
-/** Future with starting time. */
-case class SendingFileFuture(startSendingTs: Long, fut: Future[Unit])
-
-/** */
-case class DownloadTarget(host: String, port: Int)
-
 /**
   * Abstraction for files exchanging.
   */
-case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream.Settings) {
+case class FilesStreamOnTcp(discoveryService: DiscoveryService, settings: FilesStreamOnTcp.Settings) extends FilesStream {
     assert(settings.downloadPortsTo - settings.downloadPortsFrom > 0)
 
     private val logger = LoggerFactory.getLogger(s"${getClass.getSimpleName}[${settings.downloadPortsFrom}:${settings.downloadPortsTo}]")
@@ -114,40 +88,10 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
     private val downloadExecutionContext = ExecutionContext.fromExecutor(downloadPool)
     /** */
     private val sendingExecutionContext = ExecutionContext.fromExecutor(sendingPool)
-    /** */
-    private val isStarted: AtomicBoolean = new AtomicBoolean(false)
 
+    /** */
     //TODO: create watching to sending queue and add fut to it
     private val sendingQueue = new ConcurrentLinkedQueue[SendingFileFuture]()
-
-    /**
-      * Send files from LocalFS to host:port
-      *
-      * @param files files list.
-      * @param to    target host port.
-      * @return awaitable future.
-      */
-    def send(files: List[LocalFileDescriptor], to: DownloadTarget): Future[Unit] = {
-        Future({
-            new Client(Client.Settings(serverHost = to.host, serverPort = to.port)).send(os => {
-                os.writeInt(files.size)
-                files.foreach(f => os.writeLong(LocalFilesStorage.sizeOf(f)))
-                files.foreach(f => sendFile(f, os))
-            })
-        })(sendingExecutionContext)
-    }
-
-    /**
-      * Send file to output stream.
-      *
-      * @param desc local file desc.
-      * @param out  out.
-      */
-    private def sendFile(desc: LocalFileDescriptor, out: OutputStream): Unit = {
-        resource.managed(new FileInputStream(desc.filepath.toFile)) foreach { from =>
-            IOUtils.copyLarge(from, out)
-        }
-    }
 
     /**
       * Send request to remote node with list of files and open socket on free port for files awaiting.
@@ -156,7 +100,7 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
       * @param from  remote node with files.
       * @return remote files wrapper.
       */
-    def download(files: List[FileDescriptor], from: RemoteNode): RemoteFiles = {
+    override def download(files: List[FileDescriptor], from: RemoteNode): RemoteFiles = {
         files.find(desc => desc.isDir.getOrElse(false)) match {
             case Some(dir) => throw DirectoryCopyingException(dir)
             case None =>
@@ -180,19 +124,35 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
             }
         })(downloadExecutionContext)
 
-        new RemoteFiles {
-            override def isReady: Boolean = fut.isCompleted
+        RemoteFilesWithAwaitingTimeout(fut, settings.filesAwaitingTimeout)
+    }
 
-            override def get(): Try[List[DownloadedFile]] = {
-                while (!isReady) {
-                    Thread.sleep((1 second).toMillis)
-                }
+    /**
+      * Send files from LocalFS to host:port
+      *
+      * @param files files list.
+      * @param to    target host port.
+      * @return awaitable future.
+      */
+    private def send(files: List[LocalFileDescriptor], to: DownloadTarget): Future[Unit] = {
+        Future({
+            new Client(Client.Settings(serverHost = to.host, serverPort = to.port)).send(os => {
+                os.writeInt(files.size)
+                files.foreach(f => os.writeLong(LocalFilesStorage.sizeOf(f)))
+                files.foreach(f => sendFile(f, os))
+            })
+        })(sendingExecutionContext)
+    }
 
-                fut.value match {
-                    case Some(res) => res
-                    case None => throw new IllegalStateException("Future was done but value is None")
-                }
-            }
+    /**
+      * Send file to output stream.
+      *
+      * @param desc local file desc.
+      * @param out  out.
+      */
+    private def sendFile(desc: LocalFileDescriptor, out: OutputStream): Unit = {
+        resource.managed(new FileInputStream(desc.filepath.toFile)) foreach { from =>
+            IOUtils.copyLarge(from, out)
         }
     }
 
@@ -200,7 +160,7 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
         if (discoveryService.isStarted() && discoveryService.getLocalNode().isDefined) {
             val Some(node) = discoveryService.getLocalNode()
             node.registerProcessor(classOf[DownloadFilesMessage], downloadFileMessageCallback)
-            isStarted.set(true)
+            wasStartedFlag.set(true)
         }
         else {
             throw new IllegalStateException("Cannot start service before discovery starting")
@@ -208,11 +168,11 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
     }
 
     def stop(): Unit = {
-        isStarted.set(false)
+        wasStoppedFlag.set(true)
     }
 
     private def downloadFileMessageCallback(msg: Message): Unit = {
-        if (isStarted.get()) Try {
+        if (isWorking) Try {
             val downloadFilesMsg = msg.asInstanceOf[DownloadFilesMessage]
             //TODO: we should consider that files may be deleted in node or something other - we should implement error protocol
 
@@ -302,6 +262,43 @@ case class FilesStream(discoveryService: DiscoveryService, settings: FilesStream
         }-$suffix").toFile
 }
 
+case class RemoteFilesWithAwaitingTimeout(fut: Future[List[DownloadedFile]], awaitingTimeout: Duration) extends RemoteFiles {
+    /**
+      * @return true if files was downloaded.
+      */
+    override def isReady: Boolean = fut.isCompleted
+
+    /**
+      * Awaits files and return downloaded files list.
+      *
+      * @return downloaded files list.
+      */
+    override def get(): Try[List[DownloadedFile]] = {
+        val awaitingStartTs = System.currentTimeMillis()
+        while (!isReady) {
+            Thread.sleep((1 second).toMillis)
+
+            if((System.currentTimeMillis() - awaitingStartTs) > awaitingTimeout.toMillis) {
+                //TODO: make a futures in scala cancelable
+                //fut.cancel()
+                return Failure(new TimeoutException())
+            }
+        }
+
+        fut.value match {
+            case Some(res) => res
+            case None => throw new IllegalStateException("Future was done but value is None")
+        }
+    }
+}
+
+
 case class DirectoryCopyingException(dir: FileDescriptor) extends RuntimeException(
     s"Prototol doesn't support directories [${dir.path.mkString("/") + "/" + dir.key}]"
 )
+
+/** Future with starting time. */
+case class SendingFileFuture(startSendingTs: Long, fut: Future[Unit])
+
+/** */
+case class DownloadTarget(host: String, port: Int)

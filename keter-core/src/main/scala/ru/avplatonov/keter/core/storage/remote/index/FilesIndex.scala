@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote
+package ru.avplatonov.keter.core.storage.remote.index
 
 import java.util.UUID
 
@@ -30,11 +30,13 @@ case class ExchangeFileIndexesMessage(index: FilesIndex, from: NodeId) extends M
 trait FilesIndex {
     def localNodeId: NodeId
 
-    def getNodeId(desc: FileDescriptor): NodeId
+    def rebuildIndex(): Unit
 
-    def merge(other: FilesIndex): FilesIndex
+    def defineLocation(desc: FileDescriptor): Option[NodeId]
 
-    def index(desc: FileDescriptor, from: NodeId): Unit
+    def index(desc: FileDescriptor): Unit
 
-    def remove(of: NodeId): Unit
+    def remove(target: NodeId): Unit
+
+    def remove(target: FileDescriptor): Unit
 }

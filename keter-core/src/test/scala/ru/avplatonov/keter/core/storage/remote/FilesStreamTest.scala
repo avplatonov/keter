@@ -10,6 +10,7 @@ import org.apache.curator.test.TestingServer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import ru.avplatonov.keter.core.discovery.{DiscoveryService, Node, RemoteNode, ZookeeperDiscoveryService}
 import ru.avplatonov.keter.core.storage.local.LocalFileDescriptorParser
+import ru.avplatonov.keter.core.storage.remote.stream.{DirectoryCopyingException, DownloadedFile, FilesStream, FilesStreamOnTcp}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -59,8 +60,8 @@ class FilesStreamTest extends FlatSpec with Matchers with BeforeAndAfter {
         firstTempDir = Files.createTempDirectory("temp-1-")
         sedondTempDir = Files.createTempDirectory("temp-2-")
 
-        firstStream = new FilesStream(firstDiscovery, FilesStream.Settings(firstTempDir, firstWD, 8090, 8100, 5))
-        secondStream = new FilesStream(secondDiscovery, FilesStream.Settings(sedondTempDir, secondWD, 8101, 8111, 5))
+        firstStream = new FilesStreamOnTcp(firstDiscovery, FilesStreamOnTcp.Settings(firstTempDir, firstWD, 8090, 8100, 5))
+        secondStream = new FilesStreamOnTcp(secondDiscovery, FilesStreamOnTcp.Settings(sedondTempDir, secondWD, 8101, 8111, 5))
 
         val buffer = mutable.Buffer[(Path, Long)]()
         for (fileId <- 0 until Random.nextInt(10)) {

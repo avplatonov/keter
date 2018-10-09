@@ -23,7 +23,8 @@ import java.util.UUID
 import io.netty.buffer.ByteBuf
 import ru.avplatonov.keter.core.discovery.NodeId
 import ru.avplatonov.keter.core.messages.Messages
-import ru.avplatonov.keter.core.storage.remote.{DownloadFilesMessage, RemoteFileDescriptor}
+import ru.avplatonov.keter.core.storage.remote.RemoteFileDescriptor
+import ru.avplatonov.keter.core.storage.remote.stream.DownloadFilesMessage
 
 import scala.collection.JavaConverters._
 
