@@ -25,18 +25,17 @@ import scala.collection.mutable
 case class FilesDBOnHashMap() extends FilesDB {
     private val index: mutable.Map[(String, NodeId), FileDescriptor] = mutable.Map()
 
+    override def find(paths: Seq[String]): Map[String, Option[FilesIndexRow]] = paths.map(p => p -> find(p)).toMap
+
     override def find(path: String): Option[FilesIndexRow] = {
-        val rows = index.filter({ case ((p, _), _) => p.equals(path) })
-        rows.headOption.map({
-            case (_, desc) => FilesIndexRow(desc, rows.map(_._1._2).toSet)
+        val filteredIndex = index.filterKeys({case (p, _) => p.equals(path)})
+        filteredIndex.headOption.map({
+            case ((_, _), desc) => FilesIndexRow(desc, filteredIndex.keys.map(_._2).toSet)
         })
     }
 
-    override def insert(key: String, filesIndexRow: FilesIndexRow): Unit = {
-        filesIndexRow.replicas.foreach({
-            case nodeId => index.put((key, nodeId), filesIndexRow.fileDescriptor)
-        })
-    }
+    override def insert(key: String, filesIndexRow: FilesIndexRow): Unit = filesIndexRow.replicas
+        .foreach(nodeId => index.put((key, nodeId), filesIndexRow.fileDescriptor))
 
     override def insert(localFiles: Stream[(String, FilesIndexRow)]): Unit = localFiles.foreach({
         case (key, row) => insert(key, row)
@@ -44,8 +43,7 @@ case class FilesDBOnHashMap() extends FilesDB {
 
     override def delete(rowKey: RowKey): Unit = index.remove(rowKey.path -> rowKey.nodeId)
 
-    override def deleteAllFor(nodeId: NodeId): Unit =
-        index.keysIterator.filter(_._2 == nodeId).foreach(index.remove)
+    override def deleteAllFor(nodeId: NodeId): Unit = index.keysIterator.filter(_._2 == nodeId).foreach(index.remove)
 
     def idx(): Map[(String, NodeId), FileDescriptor] = index.toMap
 }

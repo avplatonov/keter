@@ -57,8 +57,8 @@ case class FilesIndexOnDB(db: FilesDB, localWorkingDir: Path, discoveryService: 
         else db.find(key).map(r => selectRandomElement(r.replicas))
     }
 
-    override def index(
-        desc: storage.FileDescriptor): Unit = db.insert(makeIndexKey(desc), FilesIndexRow(desc, Set(localNodeId)))
+    override def index(desc: storage.FileDescriptor): Unit =
+        db.insert(makeIndexKey(desc), FilesIndexRow(desc, Set(localNodeId)))
 
     override def remove(target: discovery.NodeId): Unit =
         db.deleteAllFor(target)
@@ -66,12 +66,9 @@ case class FilesIndexOnDB(db: FilesDB, localWorkingDir: Path, discoveryService: 
     override def remove(target: storage.FileDescriptor): Unit =
         db.delete(RowKey(makeIndexKey(target), localNodeId))
 
-    private def makeIndexKey(desc: storage.FileDescriptor): String = {
-        if (desc.path.isEmpty)
-            s"//${desc.key}"
-        else
-            s"//${desc.path.mkString("/")}/${desc.key}"
-    }
+    private def makeIndexKey(desc: storage.FileDescriptor): String =
+        if (desc.path.isEmpty) s"//${desc.key}"
+        else s"//${desc.path.mkString("/")}/${desc.key}"
 
     private def selectRandomElement[T](set: Set[T]): T = {
         assert(set.nonEmpty)

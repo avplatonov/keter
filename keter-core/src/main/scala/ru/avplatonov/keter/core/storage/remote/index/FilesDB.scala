@@ -38,7 +38,9 @@ object FilesDB {
 }
 
 trait FilesDB {
-    def find(path: String): Option[FilesIndexRow]
+    def find(path: String): Option[FilesIndexRow] = find(Seq(path)).headOption.flatMap(_._2)
+
+    def find(paths: Seq[String]): Map[String, Option[FilesIndexRow]]
 
     def insert(key: String, filesIndexRow: FilesIndexRow): Unit
 
@@ -58,7 +60,7 @@ case class FilesSqlDB(driverName: String, connString: String, user: String, pass
         driver
     }, true)
 
-    override def find(path: String): Option[FilesIndexRow] = ???
+    override def find(paths: Seq[String]): Map[String, Option[FilesIndexRow]] = ???
 
     override def insert(key: String, filesIndexRow: FilesIndexRow): Unit = ???
 

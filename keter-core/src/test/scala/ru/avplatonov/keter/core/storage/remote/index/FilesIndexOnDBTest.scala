@@ -54,6 +54,8 @@ class FilesIndexOnDBTest extends FlatSpec with Matchers with BeforeAndAfter {
         assert(indexedKeys == filesWithWDRoot)
     }
 
+    //TODO: all tests
+
     private def randomDir(dirsBuffer: mutable.Buffer[Path], withNone: Boolean = true): Option[Path] = {
         val i = Random.nextInt(if (withNone) dirsBuffer.length + 1
         else dirsBuffer.length)
