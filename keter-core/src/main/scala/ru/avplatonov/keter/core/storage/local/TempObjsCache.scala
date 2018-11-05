@@ -30,7 +30,7 @@ import scala.collection.mutable
   * @tparam K type of object's key.
   * @tparam V type of stored object.
   */
-case class Holder[K, V](
+case class CacheRowHolder[K, V](
     private[local] val key: K,
     private[local] val obj: V,
     private[local] val cache: TempObjsCache[K, V]
@@ -53,9 +53,11 @@ case class Holder[K, V](
 }
 
 /** */
-object Holder {
-    private class CompoundHolder[K,V](key: Seq[K], objs: Seq[(K,V)], caches: Seq[TempObjsCache[K, V]])
-        extends Holder[Seq[K], Seq[(K, V)]](key, objs, null) {
+//TODO: good idea, but I didn't use it.
+@Deprecated
+object CacheRowHolder {
+    private class CompoundCacheRowHolder[K,V](key: Seq[K], objs: Seq[(K,V)], caches: Seq[TempObjsCache[K, V]])
+        extends CacheRowHolder[Seq[K], Seq[(K, V)]](key, objs, null) {
 
         /** */
         override def foreach[R](f: Seq[(K, V)] => R): R = {
@@ -87,14 +89,14 @@ object Holder {
       * @tparam V value.
       * @return compound holder.
       */
-    def flatten[K, V](holders: Seq[Holder[K, V]]): Holder[Seq[K], Seq[(K, V)]] = {
+    def flatten[K, V](holders: Seq[CacheRowHolder[K, V]]): CacheRowHolder[Seq[K], Seq[(K, V)]] = {
         assert(holders.nonEmpty, "at least one holder should exists in holders list")
 
         val caches = holders.map(_.cache)
         val kvs = holders.map(h => (h.key, h.obj))
         val ks = holders.map(_.key)
 
-        new CompoundHolder(ks, kvs, caches)
+        new CompoundCacheRowHolder(ks, kvs, caches)
     }
 }
 
@@ -116,7 +118,7 @@ trait TempObjsCache[K, V] {
       * @param obj value.
       * @return value holder.
       */
-    def put(key: K, obj: V): Holder[K, V]
+    def put(key: K, obj: V): CacheRowHolder[K, V]
 
     /**
       * Get oject from cache.
@@ -124,7 +126,7 @@ trait TempObjsCache[K, V] {
       * @param key key.
       * @return value holder.
       */
-    def get(key: K): Option[Holder[K, V]]
+    def get(key: K): Option[CacheRowHolder[K, V]]
 
     /**
       * Release object by holder.
@@ -163,26 +165,25 @@ trait OnCountersTempObjsCache[K, V] extends TempObjsCache[K, V] {
     protected def onRemove(key: K, value: V): Unit
 
     /** */
-    override def put(key: K, obj: V): Holder[K, V] = synchronized {
+    override def put(key: K, obj: V): CacheRowHolder[K, V] = synchronized {
         if (objs.contains(key)) {
             throw new IllegalArgumentException("Cannot put new object with duplicate key")
-        }
-        else {
+        } else {
             val newValue = onPut(key, obj)
             objs.put(key, (newValue, new AtomicInteger(1)))
-            return Holder(key, newValue, this)
+            return CacheRowHolder(key, newValue, this)
         }
     }
 
     /** */
-    override def get(key: K): Option[Holder[K, V]] = {
+    override def get(key: K): Option[CacheRowHolder[K, V]] = {
         if (!objs.containsKey(key))
             None
         else {
             val res = objs.get(key)
             res._2.incrementAndGet()
 
-            Some(Holder(key, res._1, this))
+            Some(CacheRowHolder(key, res._1, this))
         }
     }
 

@@ -45,6 +45,7 @@ case class FilesIndexOnDB(db: FilesDB, localWorkingDir: Path, discoveryService: 
         }).toMap
 
         db.insert(localFiles.values.map(desc => makeIndexKey(desc) -> FilesIndexRow(desc, Set(localNodeId))).toStream)
+        db.rebuildDistributedIndex()
         localIndexRef.set(localFiles.keySet)
     }
 

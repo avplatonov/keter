@@ -20,11 +20,11 @@ package ru.avplatonov.keter.core.storage
 import java.nio.file.Paths
 
 import org.scalatest.{FlatSpec, Matchers}
-import ru.avplatonov.keter.core.storage.local.{Holder, LocalFileDescriptor, LocalFileDescriptorParser, LocalTemporaryFilesStorage}
+import ru.avplatonov.keter.core.storage.local.{CacheRowHolder, LocalFileDescriptor, LocalFileDescriptorParser, LocalTemporaryFilesStorage}
 
 import scala.collection.mutable
 
-class HolderTest extends FlatSpec with Matchers {
+class CacheRowHolderTest extends FlatSpec with Matchers {
     val tempFS = new LocalTemporaryFilesStorage(LocalTemporaryFilesStorage.Settings(Paths.get("/tmp")))
 
     "holder" should "release all sub-holders after flatten" in {
@@ -34,7 +34,7 @@ class HolderTest extends FlatSpec with Matchers {
                 val h2 = tempFS.put(f2.filepath, f2)
                 val names = mutable.Set[String]()
 
-                Holder.flatten(List(h1, h2)).foreach(fs => {
+                CacheRowHolder.flatten(List(h1, h2)).foreach(fs => {
                     fs.foreach(p => {
                         p._1.toFile.exists() should be(true)
                         names.add(p._1.getFileName.toString)

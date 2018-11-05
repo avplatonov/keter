@@ -32,7 +32,9 @@ trait FilesIndex {
 
     def rebuildIndex(): Unit
 
-    def defineLocation(desc: FileDescriptor): Option[NodeId]
+    def defineLocation(desc: FileDescriptor): Option[NodeId] = defineLocations(desc).headOption.flatMap(_._2)
+
+    def defineLocations[T >: FileDescriptor](desc: T*): Map[FileDescriptor, Option[NodeId]] = ???
 
     def index(desc: FileDescriptor): Unit
 

@@ -38,6 +38,8 @@ object FilesDB {
 }
 
 trait FilesDB {
+    def rebuildDistributedIndex(): Unit
+
     def find(path: String): Option[FilesIndexRow] = find(Seq(path)).headOption.flatMap(_._2)
 
     def find(paths: Seq[String]): Map[String, Option[FilesIndexRow]]
@@ -69,4 +71,7 @@ case class FilesSqlDB(driverName: String, connString: String, user: String, pass
     override def delete(rowKey: RowKey): Unit = ???
 
     override def deleteAllFor(nodeId: NodeId): Unit = ???
+
+    override def rebuildDistributedIndex(): Unit = { //because SQL db already did it
+    }
 }

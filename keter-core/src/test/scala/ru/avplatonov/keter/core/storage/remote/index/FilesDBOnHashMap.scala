@@ -46,4 +46,6 @@ case class FilesDBOnHashMap() extends FilesDB {
     override def deleteAllFor(nodeId: NodeId): Unit = index.keysIterator.filter(_._2 == nodeId).foreach(index.remove)
 
     def idx(): Map[(String, NodeId), FileDescriptor] = index.toMap
+
+    override def rebuildDistributedIndex(): Unit = {}
 }

@@ -61,6 +61,7 @@ object LocalFileDescriptorParser extends DescriptorParser[LocalFileDescriptor] {
     }
 }
 
+//TODO: it seems that there is no need to use such abstraction. Maybe it is just a stub for simple systems.
 object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
     def sizeOf(file: LocalFileDescriptor): Long = Files.size(file.filepath)
 
@@ -168,16 +169,15 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
             Stream.empty
         else if (dir.toFile.isFile) {
             Stream(dir)
-        } else {
+        }
+        else {
             val (files, dirs) = dir.toFile.listFiles().filterNot(_.isHidden).span(_.isFile)
             files.map(_.toPath).toStream #::: dirs.map(_.toPath).toStream.flatMap(scanFiles)
         }
     }
 
     /** */
-    private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit)
-
-    =
+    private def doIfIgnoreExisting(fileToCheck: LocalFileDescriptor, ignoreExisting: Boolean)(call: => Unit): Boolean =
         if (!ignoreExisting && exists(fileToCheck)) false
         else {
             call
@@ -185,11 +185,7 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
         }
 
     /** */
-    private def toDesc(jpath: Path): LocalFileDescriptor
-
-    = {
-        LocalFileDescriptorParser.parse(jpath.toString).copy(
-            isDir = Some(Files.isDirectory(jpath))
-        )
-    }
+    private def toDesc(jpath: Path): LocalFileDescriptor = LocalFileDescriptorParser.parse(jpath.toString).copy(
+        isDir = Some(Files.isDirectory(jpath))
+    )
 }

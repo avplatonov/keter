@@ -51,7 +51,7 @@ class LocalTemporaryFilesStorageTest extends FlatSpec with Matchers {
     }
 
     /** */
-    private def checkHolder(filename: String, holder: Holder[Path, LocalFileDescriptor]): Unit = {
+    private def checkHolder(filename: String, holder: CacheRowHolder[Path, LocalFileDescriptor]): Unit = {
         holder.foreach(desc => {
             desc.filepath should be(tmpdir.resolve(filename))
         })
