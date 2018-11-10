@@ -22,8 +22,8 @@ import java.util.UUID
 /**
   * Represents dependencies between tasks.
   *
-  * @param tasks tasks list with their local ids in graph.
-  * @param edges dependencies in graph.
+  * @param tasks tasks list with their local ids in graphTemplate.
+  * @param edges dependencies in graphTemplate.
   */
 case class Graph(tasks: Map[Long, Task], edges: Map[Long, Long])
 

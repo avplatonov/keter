@@ -59,7 +59,7 @@ trait Worker {
       * and runs task.
       *
       * @param task task.
-      * @return work object, contains unique workId on current node,
+      * @return work object, contains unique workId on current nodeTemplate,
       */
     def run(task: Task): Work
 
