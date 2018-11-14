@@ -1,6 +1,39 @@
+/* 
+Тестирование работоспособности
+1. Отображение ноды:
+    - отображается введенное количество инпутов
+    - отображается введенное количество отпутов
+    - верно отображается название ноды
+2. Соединение оутпут->инпут
+    - 2.1 нажатие на кружочек - он увеличивается
+    - 2.2 нажатие на другой кружочек - предыдущий нажатый уменьшается, а нажатый увеличивается
+    - в рамках одной ноды тоже должно работать!!!
+
+    вариант1: всего 1 нода, 
+    соединение своего отпута с инпутом : ОР - связи не появляются + 2.1 + 2.2
+
+    вариант2: 2 ноды,
+    зацикливание нода2оутпут - нода1инпут 
+        есть связи
+        нет связей
+
+
+БАГ1: 
+    -не уменьшается кружочек в рамках одной ноды: инпут-оутпут
+    -есть связь инп - отпут, нажимаешь на инпут и подсвечены предыдущ нажатый output тоже. - не выполняются 2.1 2.2
+БАГ3:
+    -вариант1: всего 1 нода, соединение своего отпута с инпутом - не выполняются 2.1 и 2.2
+
+ЗАДАЧИ:
+    1.Удаление связей
+    
+*/
+
+
 var holder = document.getElementById('holder');
 var btn_done = document.getElementById('btn_done');
 var btn_delete = document.getElementById('btn_delete');
+var btn_get = document.getElementById('btn_get');
 
 var r = Raphael("holder", 640, 600);
 
@@ -213,41 +246,57 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
         col.push(inpName)
     }
 
-    let outColor = Raphael.getColor();    
-    for(var i = 0; i < outputs_count; i++) {
-        let heightDelta = HEIGHT / (outputs_count + 1);
-        let elem = r.ellipse(cx + WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), 5, 5);
-        elem.idx = i;
-        elem.rect_id = rect_id;
-       
-        elem.attr({fill: outColor, stroke: outColor, "fill-opacity": 1.0, "stroke-width": 2, cursor: "move"});
-        elem.click(outputClick(rec.rect_id, i));
-        let outputName = r.text(cx + WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), i).attr({fill: "#fff"});
-        col.push(elem); 
-        col.push(outputName)
-    }
+    let outColor = Raphael.getColor();
+    if(outputs_count <= 6){
+        for(var i = 0; i < outputs_count; i++) {
+            let heightDelta = HEIGHT / (outputs_count + 1);
+            let elem = r.ellipse(cx + WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), 5, 5);
+            elem.idx = i;
+            elem.rect_id = rect_id;
+           
+            elem.attr({fill: outColor, stroke: outColor, "fill-opacity": 1.0, "stroke-width": 2, cursor: "move"});
+            elem.click(outputClick(rec.rect_id, i));
+            let outputName = r.text(cx + WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), i).attr({fill: "#fff"});
+            col.push(elem); 
+            col.push(outputName)
+        }
+    } else {
+        let groupOutputs = r.ellipse(cx + WIDTH / 2, cy, 3, 30);
+        groupOutputs.attr({fill: outColor, stroke: outColor, "fill-opacity": 0.9, "stroke-width": 2, cursor: "move"});   
+         
+        groupOutputs.node.onmouseover = function() {
+            groupOutputs.attr("fill", "blue");
+        };
+        groupOutputs.node.onmouseout = function() {
+            groupOutputs.attr("fill", outColor);
+        };
+        col.push(groupOutputs); 
+    }   
+    
     let nodeName = r.text(cx, cy, node_name+rect_id).attr({fill: "#fff"});
     col.push(nodeName);
     
 };
 
-// btn_done = document.getElementById('add_button');
-// btn_done.onclick = function() {
-//     add_elem(290, 80, 6, 2);
-// };
+var groupingPins = function(){
 
-// var test_connection = function(){
-//     add_elem (290, 80, 2, 2);
-//     add_elem (390, 80, 8, 2);
-// }
+} 
 
-// test_connection();
+/*var testCreateManyNodes = function(x0, y0, numNodes, numInputs, numOutputs){
+    for(var i=0; i<numNodes; i++){
+        node_name = "node ";
+        inputs = parseInt(numInputs);
+        outputs = parseInt(numOutputs);
+        add_elem(x0+i*100, y0, inputs, outputs, node_name);
+    }
+}*/
 
 btn_done.onclick = function(){
     var node_name_from_user = document.add_node.node_name.value;
     var inputs_count_from_user = parseInt(document.add_node.node_num_input.value);
     var outputs_count_from_user = parseInt(document.add_node.node_num_output.value);
     add_elem(290, 80, inputs_count_from_user, outputs_count_from_user, node_name_from_user);
+    //testCreateManyNodes(100,100, 1, 5, 5);
 };
 
 
