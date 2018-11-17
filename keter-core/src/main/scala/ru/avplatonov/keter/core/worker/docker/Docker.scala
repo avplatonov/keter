@@ -19,10 +19,20 @@ package ru.avplatonov.keter.core.worker.docker
 
 import java.nio.file.Path
 
+import com.spotify.docker.client.DockerClient
+
 import scala.concurrent.Future
 
 case class ContainerDescriptor(name: String, repository: String)
 
-class Docker {
-    def start(command: String, workdir: Path): Future[Unit] = ???
+trait TDocker {
+    def start(command: String, workdir: Path): Future[Unit]
+
+    def stop(): Boolean
+}
+
+case class Docker(client: DockerClient) extends TDocker {
+    override def start(command: String, workdir: Path): Future[Unit] = ???
+
+    override def stop(): Boolean = ???
 }
