@@ -36,6 +36,11 @@ var btn_delete = document.getElementById('btn_delete');
 var btn_get = document.getElementById('btn_get');
 
 var r = Raphael("holder", 640, 600);
+function Graph(graph_name, nodes, connections){
+    this.graph_name = graph_name;
+    this.nodes = nodes;
+    this.connections = connections; //map 
+}
 
 function Node(node_name, node_id, inputs_array, outputs_array){
     this.node_name = node_name;
@@ -44,30 +49,26 @@ function Node(node_name, node_id, inputs_array, outputs_array){
     this.ouputs = outputs_array;
 }
 
-function Input(inp_name, node_id, out_name){
+function Input(inp_name, inp_id, node_id){
+    this.inp_id = inp_id;
     this.inp_name = inp_name;
     this.node_id = node_id;
-    this.out_name = out_name;
 }
 
-function Output(out_name, node_id, inp_name){
+function Output(out_name, out_id, node_id){
     this.out_name = out_name;
     this.node_id = node_id;
-    this.inp_name = inp_name;
 }
 
 var connections = {};
-var all_input_connectors = {};
-var all_ouput_connectors = {};
-
-var map = new Map();
+var connections_map = new Map();
 var all_inputs=[];
 var all_outputs = [];
 
 var inp_clicked = null;
 var output_clicked = null;
 
-var isEmptyObject = function (obj) { return Object.keys(obj).length=== 0; };
+var isEmptyObject = function (obj) { return Object.keys(obj).length === 0; };
 
 Raphael.fn.connection = function (from, to, color) {
     var fromKey = getConnectorKey(from.rect_id, from.idx);
@@ -83,24 +84,23 @@ Raphael.fn.connection = function (from, to, color) {
         //|| from.rect_id > to.rect_id ) FIX IT!!!! зацикливание
         return;
     
-
     var lineCode = "M" + Math.floor(from.attr("cx")) + " " + Math.floor(from.attr("cy")) + "L" + Math.floor(to.attr("cx")) + " " + Math.floor(to.attr("cy"));
     var line = r.path(lineCode);
     connections[fromKey][toKey] = line;
     connections[toKey][fromKey] = line;
     line.attr({stroke: color, fill: "none", 'stroke-width':3,'arrow-end':'block-midium-midium'}); 
-
 };
 
-var getConnectorKey = function(rect_id, connector_id) {
-    return rect_id + ":" + connector_id;
+var getConnectorKey = function(rect_id, elem_id) {
+    return rect_id + ":" + elem_id;
 }
 
 var connect = function(){
     if(inp_clicked != null && output_clicked != null) {
+        //var obj_inp_clicked = new Input(inp_clicked.idx; inp_clicked.rect_id)
         all_inputs[all_inputs.length] = inp_clicked;
         all_outputs[all_outputs.length] = output_clicked;
-        map.set(inp_clicked, output_clicked);
+        connections_map.set(inp_clicked, output_clicked);
         r.connection(output_clicked, inp_clicked, "#fff");
         inp_clicked.animate({"stroke-width": 5.0}, 100);
         output_clicked.animate({"stroke-width": 1.0}, 100); 
@@ -181,9 +181,10 @@ var moveConnections = function(rect_id, connector_id) {
             	 connections[otherEndId][conn_key] = 0;            
         } 
     }
-    map.forEach( (value, key, map) => { 
+    connections_map.forEach( (value, key, map) => { 
      	r.connection(value, key, "#fff");
  	});
+    console.log(connections_map)
  }
 
 var upNode  = function(collection) { 
@@ -249,6 +250,7 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
         let heightDelta = HEIGHT / (inputs_count + 1);
     
         let elem = r.ellipse(cx - WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), 5, 5);
+        elem.isInput = true;
         elem.idx = i;
         elem.rect_id = rect_id;
         
@@ -272,6 +274,7 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
         col.push(inpName)
         var input = new Input(input_name, rect_id, "");
         inputs_map.set(i, input);
+        console.log(elem.idx, elem.isInput, elem.rect_id);
     }
 
     let outColor = Raphael.getColor();
@@ -279,6 +282,7 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
         for(var i = 0; i < outputs_count; i++) {
             let heightDelta = HEIGHT / (outputs_count + 1);
             let elem = r.ellipse(cx + WIDTH, cy - HEIGHT / 2 + heightDelta * (i + 1), 5, 5);
+            elem.isInput = false;
             elem.idx = i;
             elem.rect_id = rect_id;
            
@@ -290,6 +294,7 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
             col.push(outputName)
             var output = new Output(output_name, rect_id, "");
             outputs_map.set(i, output);
+            console.log(elem.idx, elem.isInput, elem.rect_id);
         }
     } else {
         let groupOutputs = r.ellipse(cx + WIDTH / 2, cy, 3, 30);
