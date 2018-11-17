@@ -6,16 +6,13 @@ import java.util.concurrent.atomic.AtomicReference
 import com.spotify.docker.client.DockerClient
 import com.spotify.docker.client.messages.{ContainerConfig, ContainerCreation, HostConfig}
 
-import scala.collection.JavaConverters._
-
 case class Container(command: String, sharedPaths: List[Path], imageName: String) {
     val creationDescrRef: AtomicReference[ContainerCreation] = new AtomicReference[ContainerCreation]()
 
     def run(docker: DockerClient): Unit = {
-        val binds = sharedPaths().asScala
+        val binds = sharedPaths
             .map(p => p.normalize().toString)
             .map(p => HostConfig.Bind.builder().from(p).to(p).build())
-            .toList
         val hostConfig = HostConfig.builder().binds(binds: _*).build()
         val containerConfig = ContainerConfig.builder()
             .hostConfig(hostConfig)
