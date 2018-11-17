@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.worker
+package ru.avplatonov.keter.core.worker.work
 
-import java.nio.file.Path
+import ru.avplatonov.keter.core.storage.{FileDescriptor, FileStorage}
+import ru.avplatonov.keter.core.worker.docker.Docker
+import ru.avplatonov.keter.core.worker.resources.ResourceHandler
 
-import ru.avplatonov.keter.core.task.Task
+import scala.concurrent.Future
 
-/**
-  * Some task with resources for running.
-  *
-  * @param task task description.
-  * @param inputFiles input files.
-  * @param outputFiles output files.
-  */
-case class Work(task: Task, inputFiles: Map[String, Path], outputFiles: Map[String, Path])
+case class Work(desc: TaskDescriptor, resources: ResourceHandler) {
+    def start(docker: Docker, fileStorage: FileStorage[FileDescriptor]): Future[Unit] = ???
+}
