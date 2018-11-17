@@ -15,31 +15,10 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task.resource
+package ru.avplatonov.keter.core.worker.work
 
-import ru.avplatonov.keter.core.task.TaskField
+package object script {
+    case class MissingParametersException(missingParams: List[String]) extends Exception
 
-/**
-  * Represents a tuple consists of some object with their ordering.
-  *
-  * @param ord object ordering among other objects of its type.
-  * @param obj object.
-  * @tparam T type of ordering.
-  */
-case class TaskOrdering[T](ord: Long, obj: T)
-
-/**
-  * Trait represents the interface of acquiring current priorities in system for several
-  * system resources and task fields.
-  */
-trait TaskPriorityEstimator {
-    /**
-      * Current resource ordering with values and restrictions.
-      */
-    val resourceOrdering: Seq[TaskOrdering[Resource]]
-
-    /**
-      * Current task fields ordering.
-      */
-    val taskFieldsOrdering: Seq[TaskOrdering[TaskField]]
+    case class MissingFilesException(missingFiles: List[String]) extends Exception
 }

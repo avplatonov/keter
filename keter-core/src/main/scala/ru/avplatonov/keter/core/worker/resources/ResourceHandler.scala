@@ -17,7 +17,14 @@
 
 package ru.avplatonov.keter.core.worker.resources
 
-case class ResourcesDescriptor() {
+import java.nio.file.Path
+
+object ResourceType extends Enumeration {
+    type ResourceType = Value
+    val IN, OUT = Value
+}
+
+case class ResourcesDescriptor(values: Map[String, (Path, ResourceType.Value)]) {
 
 }
 

@@ -18,6 +18,7 @@
 package ru.avplatonov.keter.core.worker.work
 
 import ru.avplatonov.keter.core.worker.docker.ContainerDescriptor
+import ru.avplatonov.keter.core.worker.work.script.ScriptTemplate
 
 case class TaskDescriptor(script: ScriptTemplate, containerDesc: ContainerDescriptor) {
 

@@ -20,8 +20,8 @@ package ru.avplatonov.keter.core.http
 import java.util.UUID
 
 import ru.avplatonov.keter.core.storage.FileDescriptor
+import ru.avplatonov.keter.core.task.TaskStatus
 import ru.avplatonov.keter.core.task.resource.ResourceType
-import ru.avplatonov.keter.core.task.{Graph, Task, TaskStatus}
 
 case class TaskState()
 
@@ -60,7 +60,7 @@ trait PublicAPI {
       * @param task template.
       * @return id of task.
       */
-    def createTaskTemplate(task: Task): UUID
+    def createTaskTemplate(task: Any): UUID
 
     /**
       * Gets task description and save it as template in system.
@@ -68,7 +68,7 @@ trait PublicAPI {
       * @param graph template.
       * @return id of graph.
       */
-    def createGraphTemplate(graph: Graph): UUID
+    def createGraphTemplate(graph: Any): UUID
 
     /**
       * Run graph by id and its parameters for run.
