@@ -37,6 +37,25 @@ var btn_get = document.getElementById('btn_get');
 
 var r = Raphael("holder", 640, 600);
 
+function Node(node_name, node_id, inputs_array, outputs_array){
+    this.node_name = node_name;
+    this.node_id = node_id; //это индентификатор шаблона, который был получен при создании шаблона ноды
+    this.inputs = inputs_array;
+    this.ouputs = outputs_array;
+}
+
+function Input(inp_name, node_id, out_name){
+    this.inp_name = inp_name;
+    this.node_id = node_id;
+    this.out_name = out_name;
+}
+
+function Output(out_name, node_id, inp_name){
+    this.out_name = out_name;
+    this.node_id = node_id;
+    this.inp_name = inp_name;
+}
+
 var connections = {};
 var all_input_connectors = {};
 var all_ouput_connectors = {};
@@ -187,17 +206,11 @@ var inpClick = function(rec, rect_id, index) {
         let output_key = getConnectorKey(output_clicked.rect_id, output_clicked.idx);
         let input_key = getConnectorKey(inp_clicked.rect_id, inp_clicked.idx);
         console.log(isEmptyObject(connections))
-
-
-        //console.log(output_key) 
         if(isEmptyObject(connections)){
             connect();
-            //output_clicked = null;
         } else if (typeof(connections[output_key]) == "undefined"){
             connect();
             output_clicked = null;
-            console.log("dddddddddd")
-
         }
         console.log(all_outputs[0].idx) /*else alert("connection already exist! You couldn't add more connections to one input")
         console.log(output_key + " " + input_key+  connections[output_key][input_key])*/
@@ -214,8 +227,6 @@ var outputClick = function(rect_id, index) {
             this.animate({"stroke-width": 5.0}, 100);
             output_clicked = this;
         }
-        //console.log(output_clicked)
-         //console.warn(rect_id + " " + index+ " " + connections[getConnectorKey(rect_id, index)])
     }
 }
 
@@ -230,6 +241,8 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
     rec.rect_id=rect_id;
     let col = [rec];
     rec.drag(moveNode(col), dragNode(col), upNode(col));
+    var inputs_map = new Map();
+    var outputs_map = new Map();
     
     let inpColor = Raphael.getColor();    
     for(var i = 0; i < inputs_count; i++) {
@@ -241,24 +254,42 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
         
         elem.attr({fill: inpColor, stroke: inpColor, "fill-opacity": 1.0, "stroke-width": 2, cursor: "move"});
         elem.click(inpClick(rec, rec.rect_id, i));
-        let inpName = r.text(cx - WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), i).attr({fill: "#fff"});
+        var input_name = "Name "+i;
+        var inpName = r.text(cx - WIDTH, cy - HEIGHT / 2 + heightDelta * (i + 1), input_name).attr({fill: "#fff"});
+        /*
+        // hiding name of elem
+        inpName.hide();
+        elem.node.onmouseover = function() {
+            elem.attr("fill", "blue");
+            inpName.show();
+            //
+        };
+        elem.node.onmouseout = function() {
+            elem.attr("fill", inpColor);
+            inpName.hide();
+        };*/
         col.push(elem);
         col.push(inpName)
+        var input = new Input(input_name, rect_id, "");
+        inputs_map.set(i, input);
     }
 
     let outColor = Raphael.getColor();
     if(outputs_count <= 6){
         for(var i = 0; i < outputs_count; i++) {
             let heightDelta = HEIGHT / (outputs_count + 1);
-            let elem = r.ellipse(cx + WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), 5, 5);
+            let elem = r.ellipse(cx + WIDTH, cy - HEIGHT / 2 + heightDelta * (i + 1), 5, 5);
             elem.idx = i;
             elem.rect_id = rect_id;
            
             elem.attr({fill: outColor, stroke: outColor, "fill-opacity": 1.0, "stroke-width": 2, cursor: "move"});
             elem.click(outputClick(rec.rect_id, i));
-            let outputName = r.text(cx + WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), i).attr({fill: "#fff"});
+            var output_name = "Out "+i;
+            let outputName = r.text(cx + WIDTH / 2, cy - HEIGHT / 2 + heightDelta * (i + 1), output_name).attr({fill: "#fff"});
             col.push(elem); 
             col.push(outputName)
+            var output = new Output(output_name, rect_id, "");
+            outputs_map.set(i, output);
         }
     } else {
         let groupOutputs = r.ellipse(cx + WIDTH / 2, cy, 3, 30);
@@ -275,6 +306,9 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
     
     let nodeName = r.text(cx, cy, node_name+rect_id).attr({fill: "#fff"});
     col.push(nodeName);
+
+    var node = new Node(nodeName, rect_id, inputs_map,outputs_map);
+    console.log(node);
     
 };
 
