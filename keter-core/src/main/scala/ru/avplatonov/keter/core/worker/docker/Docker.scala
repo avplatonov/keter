@@ -15,31 +15,24 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task.resource
+package ru.avplatonov.keter.core.worker.docker
 
-import ru.avplatonov.keter.core.task.TaskField
+import java.nio.file.Path
 
-/**
-  * Represents a tuple consists of some object with their ordering.
-  *
-  * @param ord object ordering among other objects of its type.
-  * @param obj object.
-  * @tparam T type of ordering.
-  */
-case class TaskOrdering[T](ord: Long, obj: T)
+import com.spotify.docker.client.DockerClient
 
-/**
-  * Trait represents the interface of acquiring current priorities in system for several
-  * system resources and task fields.
-  */
-trait TaskPriorityEstimator {
-    /**
-      * Current resource ordering with values and restrictions.
-      */
-    val resourceOrdering: Seq[TaskOrdering[Resource]]
+import scala.concurrent.Future
 
-    /**
-      * Current task fields ordering.
-      */
-    val taskFieldsOrdering: Seq[TaskOrdering[TaskField]]
+case class ContainerDescriptor(name: String, repository: String)
+
+trait TDocker {
+    def start(command: String, workdir: Path): Future[Unit]
+
+    def stop(): Boolean
+}
+
+case class Docker(client: DockerClient) extends TDocker {
+    override def start(command: String, workdir: Path): Future[Unit] = ???
+
+    override def stop(): Boolean = ???
 }

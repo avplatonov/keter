@@ -15,33 +15,17 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task
+package ru.avplatonov.keter.core.worker.resources
 
-/**
-  * Comment to task.
-  */
-trait Comment {
-    /**
-      * @return string representation of comment.
-      */
-    def stringValue(): String
+import java.nio.file.Path
+
+object ResourceType extends Enumeration {
+    type ResourceType = Value
+    val IN, OUT = Value
 }
 
-object Comment {
-    /** */
-    case object Empty extends Comment {
-        /**
-          * @return string representation of comment.
-          */
-        override def stringValue(): String = ""
-    }
+case class ResourcesDescriptor(values: Map[String, (Path, ResourceType.Value)])
 
-    /** Represents comment about error while task running. */
-    case class Error(exception: Exception) extends Comment {
-        /**
-          * @return string representation of comment.
-          */
-        override def stringValue(): String = exception.getStackTrace
-            .map(_.toString).mkString("\n\t")
-    }
+case class ResourceHandler() {
+
 }

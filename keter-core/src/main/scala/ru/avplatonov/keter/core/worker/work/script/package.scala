@@ -15,30 +15,10 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.task.resource
+package ru.avplatonov.keter.core.worker.work
 
-/**
-  * Represents resouce management system: check resources in system, borrowing and returning them.
-  */
-trait ResourceManager {
-    /**
-      * @return resource status for all types of resource.
-      */
-    def resources(): Map[ResourceType, Long]
+package object script {
+    case class MissingParametersException(missingParams: List[String]) extends Exception
 
-    /**
-      * Acquires resources of specific types.
-      *
-      * @param values needed resources.
-      * @return true if acquiring was successful.
-      */
-    def acquire(values: Map[ResourceType, Long]): Boolean
-
-    /**
-      * Release resources of specific types.
-      *
-      * @param values resources.
-      * @return true if releasing was successful.
-      */
-    def release(values: Map[ResourceType, Long]): Boolean
+    case class MissingFilesException(missingFiles: List[String]) extends Exception
 }
