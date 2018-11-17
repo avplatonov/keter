@@ -18,10 +18,13 @@
 package ru.avplatonov.keter.core.worker.work
 
 import ru.avplatonov.keter.core.storage.{FileDescriptor, FileStorage}
-import ru.avplatonov.keter.core.worker.docker.Docker
+import ru.avplatonov.keter.core.worker.docker.{ContainerDescriptor, Docker}
 import ru.avplatonov.keter.core.worker.resources.ResourceHandler
+import ru.avplatonov.keter.core.worker.work.script.ScriptTemplate
 
 import scala.concurrent.Future
+
+case class TaskDescriptor(script: ScriptTemplate, containerDesc: ContainerDescriptor)
 
 case class Work(desc: TaskDescriptor, resources: ResourceHandler) {
     def start(docker: Docker, fileStorage: FileStorage[FileDescriptor]): Future[Unit] = ???

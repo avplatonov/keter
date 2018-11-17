@@ -24,9 +24,7 @@ object ResourceType extends Enumeration {
     val IN, OUT = Value
 }
 
-case class ResourcesDescriptor(values: Map[String, (Path, ResourceType.Value)]) {
-
-}
+case class ResourcesDescriptor(values: Map[String, (Path, ResourceType.Value)])
 
 case class ResourceHandler() {
 

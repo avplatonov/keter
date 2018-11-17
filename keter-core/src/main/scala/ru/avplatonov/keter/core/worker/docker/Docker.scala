@@ -21,6 +21,8 @@ import java.nio.file.Path
 
 import scala.concurrent.Future
 
+case class ContainerDescriptor(name: String, repository: String)
+
 class Docker {
     def start(command: String, workdir: Path): Future[Unit] = ???
 }
