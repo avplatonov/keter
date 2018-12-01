@@ -40,6 +40,25 @@ trait Executor {
       * @return output files.
       */
     def process(workdir: Path, syslogName: String)(cmd: String): Try[ExecutorResult]
+
+    protected def getFilesInWD()(implicit wd: Path): Set[Path] = Files.list(wd).collect(Collectors.toSet()).asScala.toSet
+
+    protected def generateStdOutErrAndSh(cmd: String)(implicit logger: Logger, workdir: Path): Try[(Path, Path, Path)] = {
+        createScriptFile(cmd)(logger, workdir) map { sh =>
+            val errorLog = workdir.resolve(UUID.randomUUID().toString + ".error.log")
+            val stdout = workdir.resolve(UUID.randomUUID().toString + ".out")
+            (stdout, errorLog, sh)
+        }
+    }
+
+    private def createScriptFile(cmd: String)(implicit logger: Logger, workdir: Path): Try[Path] = {
+        val scriptFile = workdir.resolve(UUID.randomUUID().toString + ".sh")
+        resource.managed(new PrintWriter(scriptFile.toFile)).acquireAndGet(out => Try {
+            logger.info(s"Create script file [name = ${scriptFile.toAbsolutePath}]")
+            out.print(cmd)
+            scriptFile
+        })
+    }
 }
 
 case class NonZeroStatusCode(status: Int, errorLog: Path) extends RuntimeException
@@ -62,36 +81,21 @@ case class BashExecutor(loggerFactory: Path => Logger)(val env: Array[String] = 
         logger.info(s"Start processing script.")
         logger.info(cmd)
 
-        val errorLog = workdir.resolve(UUID.randomUUID().toString + ".error.log")
-        val stdout = workdir.resolve(UUID.randomUUID().toString + ".out")
-        val envFiles = getFilesInWD() + errorLog + stdout
+        generateStdOutErrAndSh(cmd) flatMap {
+            case (stdout, stderr, sh) =>
+                val envFiles = getFilesInWD() + stderr + stdout
+                logger.info(s"Environment [${envFiles.map(_.getFileName.toString).mkString(",")}]")
 
-        logger.info(s"Environment [${envFiles.map(_.getFileName.toString).mkString(",")}]")
-
-        createScriptFile(cmd) match {
-            case Success(scriptFile) =>
-                run(scriptFile, stdout, errorLog)
+                run(sh, stdout, stderr)
                     .flatMap(awaiting)
-                    .flatMap(processStatus(_, stdout, errorLog, envFiles + scriptFile)) match {
+                    .flatMap(processStatus(_, stdout, stderr, envFiles + sh)) match {
 
                     case res: Success[ExecutorResult] => res
                     case error: Failure[ExecutorResult] =>
                         logger.error("Error during command processing", error.exception)
                         error
                 }
-            case Failure(e) => Failure(e)
         }
-    }
-
-    private def getFilesInWD()(implicit wd: Path): Set[Path] = Files.list(wd).collect(Collectors.toSet()).asScala.toSet
-
-    private def createScriptFile(cmd: String)(implicit logger: Logger, workdir: Path): Try[Path] = {
-        val scriptFile = workdir.resolve(UUID.randomUUID().toString + ".sh")
-        resource.managed(new PrintWriter(scriptFile.toFile)).acquireAndGet(out => Try {
-            logger.info(s"Create script file [name = ${scriptFile.toAbsolutePath}]")
-            out.print(cmd)
-            scriptFile
-        })
     }
 
     private def run(scriptFile: Path, stdout: Path, errorLog: Path)(implicit logger: Logger, workdir: Path) = Try {
