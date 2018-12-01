@@ -3,6 +3,7 @@ package ru.avplatonov.keter.core.worker.work
 import java.nio.file.Paths
 
 import org.scalatest.{FlatSpec, Matchers}
+import ru.avplatonov.keter.core.worker._
 import ru.avplatonov.keter.core.worker.work.script._
 
 class ScriptTemplateTest extends FlatSpec with Matchers {

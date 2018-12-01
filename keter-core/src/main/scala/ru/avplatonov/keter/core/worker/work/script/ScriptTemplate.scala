@@ -17,7 +17,7 @@
 
 package ru.avplatonov.keter.core.worker.work.script
 
-import ru.avplatonov.keter.core.worker.work.{ParameterDescriptor, ParameterDescriptors, ParameterType, ResourcesDescriptor}
+import ru.avplatonov.keter.core.worker.{ParameterDescriptor, ParameterDescriptors, ParameterType, ResourcesDescriptor}
 
 case class ScriptTemplate(body: String) {
     private val parametersRegex = "\\$\\{PARAM\\.(.*?)\\}".r

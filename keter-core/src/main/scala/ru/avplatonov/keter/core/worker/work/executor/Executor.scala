@@ -20,8 +20,9 @@ package ru.avplatonov.keter.core.worker.work.executor
 import java.io.PrintWriter
 import java.nio.file.{Files, Path}
 import java.util.UUID
-import java.util.logging.{Level, Logger}
 import java.util.stream.Collectors
+
+import org.slf4j.Logger
 
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -59,9 +60,9 @@ case class BashExecutor(loggerFactory: Path => Logger)(val env: Array[String] = 
         val envFiles = getFilesInWD()
 
         implicit val logger = loggerFactory(workdir.resolve(syslogName))
-        logger.log(Level.INFO, s"Start processing script.")
-        logger.log(Level.INFO, cmd)
-        logger.log(Level.INFO, s"Environment [${envFiles.map(_.getFileName.toString).mkString(",")}]")
+        logger.info(s"Start processing script.")
+        logger.info(cmd)
+        logger.info(s"Environment [${envFiles.map(_.getFileName.toString).mkString(",")}]")
 
         val errorLog = workdir.resolve(UUID.randomUUID().toString + ".error.log")
         val stdout = workdir.resolve(UUID.randomUUID().toString + ".out")
@@ -73,7 +74,7 @@ case class BashExecutor(loggerFactory: Path => Logger)(val env: Array[String] = 
 
             case res: Success[ExecutorResult] => res
             case error: Failure[ExecutorResult] =>
-                logger.log(Level.WARNING, "Error during command processing", error.exception)
+                logger.error("Error during command processing", error.exception)
                 error
         }
     }
@@ -83,26 +84,26 @@ case class BashExecutor(loggerFactory: Path => Logger)(val env: Array[String] = 
     private def createScriptFile(cmd: String)(implicit logger: Logger, workdir: Path): Try[Path] = {
         val scriptFile = workdir.resolve(UUID.randomUUID().toString + ".sh")
         resource.managed(new PrintWriter(scriptFile.toFile)).acquireAndGet(out => Try {
-            logger.log(Level.INFO, s"Create script file [name = ${scriptFile.toAbsolutePath}]")
+            logger.info(s"Create script file [name = ${scriptFile.toAbsolutePath}]")
             out.print(cmd)
             scriptFile
         })
     }
 
     private def run(scriptFile: Path, stdout: Path, errorLog: Path)(implicit logger: Logger, workdir: Path) = Try {
-        val cmd = s"bash ${scriptFile.getFileName.toString}"
+        val cmd = s"bash '${scriptFile.getFileName.toString}'"
         val builder = new ProcessBuilder(cmd)
             .redirectError(errorLog.toFile)
             .redirectOutput(stdout.toFile)
             .directory(workdir.toFile)
         builder.environment().put("PATH", "/bin:/usr/bin")
 
-        logger.log(Level.INFO, s"Start cmd ['$cmd']")
+        logger.info(s"Start cmd ['$cmd']")
         builder.start()
     }
 
     private def awaiting(process: Process)(implicit logger: Logger) = Try({
-        logger.log(Level.INFO, s"Wait cmd")
+        logger.info(s"Wait cmd")
         process.waitFor()
     })
 
@@ -111,13 +112,13 @@ case class BashExecutor(loggerFactory: Path => Logger)(val env: Array[String] = 
 
         Try(status match {
             case 0 =>
-                logger.log(Level.INFO, s"Cmd was complete successfully")
+                logger.info(s"Cmd was complete successfully")
                 val newFiles = getFilesInWD()(workdir) -- prevFiles
-                logger.log(Level.INFO, s"New files [${newFiles.map(_.getFileName.toString).mkString(",")}]")
+                logger.info(s"New files [${newFiles.map(_.getFileName.toString).mkString(",")}]")
                 ExecutorResult(stdout, errorLog, newFiles)
             case code =>
-                logger.log(Level.WARNING, "Non-zero status code")
-                Source.fromFile(errorLog.toFile).getLines().foreach(logger.log(Level.WARNING, _))
+                logger.warn("Non-zero status code")
+                Source.fromFile(errorLog.toFile).getLines().foreach(logger.warn)
                 throw NonZeroStatusCode(code, errorLog)
         })
     }
