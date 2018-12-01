@@ -17,35 +17,8 @@
 
 package ru.avplatonov.keter.core.worker.work
 
-import java.nio.file.Path
+import ru.avplatonov.keter.core.worker.{ResourcesDescriptor, Work}
 
-import ru.avplatonov.keter.core.storage.{FileDescriptor, FileStorage}
-import ru.avplatonov.keter.core.worker.docker.{ContainerDescriptor, Docker}
-import ru.avplatonov.keter.core.worker.work.script.ScriptTemplate
-
-import scala.concurrent.Future
-
-object ParameterType extends Enumeration {
-    type ParameterType = Value
-
-    val INT, DOUBLE, STRING = Value
-}
-
-case class ParameterDescriptors(values: Map[String, ParameterDescriptor])
-
-case class ParameterDescriptor(value: Any, `type`: ParameterType.Value)
-
-object ResourceType extends Enumeration {
-    type ResourceType = Value
-    val IN, OUT = Value
-}
-
-case class ResourcesDescriptor(values: Map[String, (Path, ResourceType.Value)])
-
-case class ResourceHandler()
-
-case class TaskDescriptor(script: ScriptTemplate, containerDesc: ContainerDescriptor)
-
-case class Work(desc: TaskDescriptor, resources: ResourceHandler) {
-    def start(docker: Docker, fileStorage: FileStorage[FileDescriptor]): Future[Unit] = ???
+trait Worker {
+    def process(work: Work): Either[Exception, ResourcesDescriptor]
 }
