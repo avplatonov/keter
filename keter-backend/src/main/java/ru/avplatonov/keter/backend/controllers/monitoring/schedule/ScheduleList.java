@@ -1,25 +1,24 @@
 package ru.avplatonov.keter.backend.controllers.monitoring.schedule;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.lang.NonNull;
-import org.springframework.web.bind.annotation.*;
-import ru.avplatonov.keter.backend.db.ScheduleDB;
-import ru.avplatonov.keter.backend.initialize.monitoring.schedule.Schedule;
-
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.avplatonov.keter.backend.db.ScheduleDB;
+import ru.avplatonov.keter.backend.initialize.monitoring.schedule.Schedule;
 
 
 @RestController
 @EnableAutoConfiguration
 public class ScheduleList {
 
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
     @RequestMapping(value = "/graph/status")
     public List<Schedule> schedule(
             @RequestParam Optional<String> filter
