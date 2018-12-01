@@ -1,25 +1,22 @@
 package ru.avplatonov.keter.backend.controllers.monitoring.schedule;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.lang.NonNull;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.avplatonov.keter.backend.initialize.monitoring.schedule.Schedule;
-
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 import static ru.avplatonov.keter.backend.db.ScheduleDB.listSchedule;
 
 @RestController
 @EnableAutoConfiguration
 public class RefreshScheduleState {
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
     @RequestMapping(value = "/graph/status/state")
     public List<Schedule> scheduleRefresh(
             @RequestParam String ids
