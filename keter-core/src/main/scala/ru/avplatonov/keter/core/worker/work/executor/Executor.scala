@@ -57,25 +57,29 @@ case class BashExecutor(loggerFactory: Path => Logger)(val env: Array[String] = 
       */
     override def process(workdir: Path, syslogName: String)(cmd: String): Try[ExecutorResult] = {
         implicit val wd = workdir
-        val envFiles = getFilesInWD()
-
         implicit val logger = loggerFactory(workdir.resolve(syslogName))
+
         logger.info(s"Start processing script.")
         logger.info(cmd)
-        logger.info(s"Environment [${envFiles.map(_.getFileName.toString).mkString(",")}]")
 
         val errorLog = workdir.resolve(UUID.randomUUID().toString + ".error.log")
         val stdout = workdir.resolve(UUID.randomUUID().toString + ".out")
+        val envFiles = getFilesInWD() + errorLog + stdout
 
-        createScriptFile(cmd)
-            .flatMap(run(_, stdout, errorLog))
-            .flatMap(awaiting)
-            .flatMap(processStatus(_, stdout, errorLog, envFiles)) match {
+        logger.info(s"Environment [${envFiles.map(_.getFileName.toString).mkString(",")}]")
 
-            case res: Success[ExecutorResult] => res
-            case error: Failure[ExecutorResult] =>
-                logger.error("Error during command processing", error.exception)
-                error
+        createScriptFile(cmd) match {
+            case Success(scriptFile) =>
+                run(scriptFile, stdout, errorLog)
+                    .flatMap(awaiting)
+                    .flatMap(processStatus(_, stdout, errorLog, envFiles + scriptFile)) match {
+
+                    case res: Success[ExecutorResult] => res
+                    case error: Failure[ExecutorResult] =>
+                        logger.error("Error during command processing", error.exception)
+                        error
+                }
+            case Failure(e) => Failure(e)
         }
     }
 
@@ -91,14 +95,13 @@ case class BashExecutor(loggerFactory: Path => Logger)(val env: Array[String] = 
     }
 
     private def run(scriptFile: Path, stdout: Path, errorLog: Path)(implicit logger: Logger, workdir: Path) = Try {
-        val cmd = s"bash '${scriptFile.getFileName.toString}'"
-        val builder = new ProcessBuilder(cmd)
+        val builder = new ProcessBuilder("/bin/bash", scriptFile.getFileName.toString)
             .redirectError(errorLog.toFile)
             .redirectOutput(stdout.toFile)
             .directory(workdir.toFile)
         builder.environment().put("PATH", "/bin:/usr/bin")
 
-        logger.info(s"Start cmd ['$cmd']")
+        logger.info(s"Start cmd ['/bin/bash ${scriptFile.getFileName.toString}']")
         builder.start()
     }
 

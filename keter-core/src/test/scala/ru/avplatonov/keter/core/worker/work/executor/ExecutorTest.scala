@@ -25,9 +25,9 @@ class ExecutorTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
         result match {
             case ExecutorResult(stdout, errorLog, otherCreatedFiles) =>
-                Source.fromFile(stdout.toFile).mkString should equal(content)
+                Source.fromFile(stdout.toFile).mkString should equal(content + "\n")
                 Source.fromFile(errorLog.toFile).mkString should equal("")
-                otherCreatedFiles.size should equal(0)
+                otherCreatedFiles should equal(Set.empty)
         }
     }
 
