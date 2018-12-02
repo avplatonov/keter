@@ -19,10 +19,9 @@ package ru.avplatonov.keter.core.worker.work.executor
 
 import java.io.FileOutputStream
 import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicReference
 
 import com.spotify.docker.client.DockerClient
-import com.spotify.docker.client.messages.{ContainerConfig, ContainerCreation, HostConfig}
+import com.spotify.docker.client.messages.{ContainerConfig, HostConfig}
 import org.slf4j.Logger
 
 import scala.util.Try
@@ -48,8 +47,6 @@ import scala.util.Try
   * @param imageName
   */
 class DockerExecutor(loggerFactory: Path => Logger)(client: DockerClient, imageName: String) extends Executor {
-    val creationDescrRef: AtomicReference[ContainerCreation] = new AtomicReference[ContainerCreation]()
-
     /**
       * Execute script and returns resulting files.
       *
@@ -82,19 +79,23 @@ class DockerExecutor(loggerFactory: Path => Logger)(client: DockerClient, imageN
                     .build()
 
                 val creation = client.createContainer(containerConfig)
-                creationDescrRef.set(creation)
-                client.startContainer(creation.id())
+                val containerCreationId = creation.id()
+                client.startContainer(containerCreationId)
+                logger.info(s"Container started [ID = $containerCreationId]")
+
                 try {
                     val execCreation = client.execCreate(
-                        creation.id(),
+                        containerCreationId,
                         Array("bash", s"$dockerWorkdir/${sh.getFileName.toString}"),
                         DockerClient.ExecCreateParam.attachStdout(),
                         DockerClient.ExecCreateParam.attachStderr()
                     )
 
+                    logger.info(s"Start detached execution [ID = ${execCreation.id()}]")
                     resource.managed(client.execStart(execCreation.id())).foreach(log => {
                         resource.managed(new FileOutputStream(stdout.toFile)).foreach(stdout => {
                             resource.managed(new FileOutputStream(stderr.toFile)).foreach(stderr => {
+                                logger.info("Attach to execution [ID = ${execCreation.id()}]")
                                 log.attach(stdout, stderr)
                             })
                         })
@@ -106,8 +107,9 @@ class DockerExecutor(loggerFactory: Path => Logger)(client: DockerClient, imageN
                         case code => throw NonZeroStatusCode(code, stderr)
                     }
                 } finally {
-                    client.killContainer(creation.id())
-                    client.removeContainer(creation.id())
+                    logger.info(s"Kill and remove container [ID = $containerCreationId]")
+                    client.killContainer(containerCreationId)
+                    client.removeContainer(containerCreationId)
                 }
             }
         }
