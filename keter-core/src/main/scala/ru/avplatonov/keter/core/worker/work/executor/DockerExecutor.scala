@@ -17,6 +17,7 @@
 
 package ru.avplatonov.keter.core.worker.work.executor
 
+import java.io.FileOutputStream
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 
@@ -26,6 +27,26 @@ import org.slf4j.Logger
 
 import scala.util.Try
 
+/**
+  * Before using such executor make sure that you configured Docker like this:
+  *
+  * 1) Create a file at /etc/systemd/system/docker.service.d/startup_options.conf with the below contents:
+  * # /etc/systemd/system/docker.service.d/override.conf
+  * [Service]
+  * ExecStart=
+  * ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375
+  *
+  * 2) sudo systemctl daemon-reload
+  * 3) sudo systemctl restart docker.service
+  * 4) Check that Docker open socket:
+  *     nmap -p 2375 localhost
+  *
+  * And use docker URL like this: http://localhost:2375.
+  *
+  * @param loggerFactory
+  * @param client
+  * @param imageName
+  */
 class DockerExecutor(loggerFactory: Path => Logger)(client: DockerClient, imageName: String) extends Executor {
     val creationDescrRef: AtomicReference[ContainerCreation] = new AtomicReference[ContainerCreation]()
 
@@ -48,43 +69,47 @@ class DockerExecutor(loggerFactory: Path => Logger)(client: DockerClient, imageN
             case (stdout, stderr, sh) => Try {
                 val envFiles = getFilesInWD() + stderr + stdout
                 logger.info(s"Environment [${envFiles.map(_.getFileName.toString).mkString(",")}]")
-                val wdBind = HostConfig.Bind.builder().from(workdir.toString).to(".").build()
+                val dockerWorkdir = "/workdir"
+
+                val wdBind = HostConfig.Bind.builder().from(workdir.toString).to(dockerWorkdir).build()
                 val hostConfig = HostConfig.builder().binds(wdBind).build()
 
                 val containerConfig = ContainerConfig.builder()
                     .hostConfig(hostConfig)
                     .image(imageName)
-                    .cmd("bash", sh.getFileName.toString,
-                        ">", stdout.getFileName.toString,
-                        "2>", stderr.getFileName.toString)
+                    .workingDir(dockerWorkdir)
+                    .cmd("sh", "-c", "while :; do sleep 1; done")
                     .build()
+
                 val creation = client.createContainer(containerConfig)
                 creationDescrRef.set(creation)
                 client.startContainer(creation.id())
-                val result = client.waitContainer(creation.id())
+                try {
+                    val execCreation = client.execCreate(
+                        creation.id(),
+                        Array("bash", s"$dockerWorkdir/${sh.getFileName.toString}"),
+                        DockerClient.ExecCreateParam.attachStdout(),
+                        DockerClient.ExecCreateParam.attachStderr()
+                    )
 
-                Int.unbox(result.statusCode()) match {
-                    case 0 => ExecutorResult(stdout, stderr, getFilesInWD() -- envFiles)
-                    case code => throw NonZeroStatusCode(code, stderr)
+                    resource.managed(client.execStart(execCreation.id())).foreach(log => {
+                        resource.managed(new FileOutputStream(stdout.toFile)).foreach(stdout => {
+                            resource.managed(new FileOutputStream(stderr.toFile)).foreach(stderr => {
+                                log.attach(stdout, stderr)
+                            })
+                        })
+                    })
+
+                    val state = client.execInspect(execCreation.id())
+                    Int.unbox(state.exitCode()) match {
+                        case 0 => ExecutorResult(stdout, stderr, getFilesInWD() -- envFiles)
+                        case code => throw NonZeroStatusCode(code, stderr)
+                    }
+                } finally {
+                    client.killContainer(creation.id())
+                    client.removeContainer(creation.id())
                 }
             }
         }
-    }
-
-    def status(): String = inspectContainer()
-        .map(_.state().status())
-        .getOrElse("unknown")
-
-    def exitCode(docker: DockerClient): Int = inspectContainer().map(_.state().exitCode()) match {
-        case None => 0
-        case Some(value) => value
-    }
-
-    private def inspectContainer() =
-        creationDescr.map(_.id()).map(client.inspectContainer)
-
-    private def creationDescr = creationDescrRef.get() match {
-        case null => None
-        case value => Some(value)
     }
 }

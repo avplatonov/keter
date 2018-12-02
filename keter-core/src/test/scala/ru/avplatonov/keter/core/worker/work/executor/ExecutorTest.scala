@@ -1,4 +1,4 @@
-package ru.avplatonov.keter.core.worker.work.executor
+ package ru.avplatonov.keter.core.worker.work.executor
 
 import java.io.PrintWriter
 import java.nio.file.{Files, Path, Paths}
@@ -16,13 +16,13 @@ abstract class ExecutorTest extends FlatSpec with Matchers with BeforeAndAfterAl
     behavior of "Executor"
 
     val testWDRoot = Paths.get("/tmp/executor-tests/")
-    val executor = getTestExecutor()
     val logger = getLogger()
 
     it must "save echo result from std as file" in {
         val content = "hello world"
-        val resultT = executor.process(wd, "")("echo '" + content + "'")
+        val resultT = getTestExecutor().process(wd, "")("echo '" + content + "'")
 
+        if(resultT.isFailure) resultT.get
         resultT.isSuccess should equal(true)
         val result = resultT.get
 
@@ -38,8 +38,9 @@ abstract class ExecutorTest extends FlatSpec with Matchers with BeforeAndAfterAl
         val content = "hello world"
         val command = "echo '" + content + "'"
         val workdir = wd
-        val resultT = executor.process(workdir, "")(command)
+        val resultT = getTestExecutor().process(workdir, "")(command)
 
+        if(resultT.isFailure) resultT.get
         resultT.isSuccess should equal(true)
         val result = resultT.get
 
@@ -56,8 +57,9 @@ abstract class ExecutorTest extends FlatSpec with Matchers with BeforeAndAfterAl
         val content = "hello world"
         val command = "echo '" + content + "' > content.txt"
         val workdir = wd
-        val resultT = executor.process(workdir, "")(command)
+        val resultT = getTestExecutor().process(workdir, "")(command)
 
+        if(resultT.isFailure) resultT.get
         resultT.isSuccess should equal(true)
         val result = resultT.get
         val contentPath = workdir.resolve("content.txt")
@@ -72,8 +74,9 @@ abstract class ExecutorTest extends FlatSpec with Matchers with BeforeAndAfterAl
         val content = "hello world"
         val command = "bash -c 'echo \"" + content + "\" > content.txt'"
         val workdir = wd
-        val resultT = executor.process(workdir, "")(command)
+        val resultT = getTestExecutor().process(workdir, "")(command)
 
+        if(resultT.isFailure) resultT.get
         resultT.isSuccess should equal(true)
         val result = resultT.get
         val contentPath = workdir.resolve("content.txt")
@@ -89,7 +92,7 @@ abstract class ExecutorTest extends FlatSpec with Matchers with BeforeAndAfterAl
             val content = "hello world"
             val command = "bash -c 'cat not-found-file'"
             val workdir = wd
-            executor.process(workdir, "")(command).get
+            getTestExecutor().process(workdir, "")(command).get
         }
     }
 
@@ -99,8 +102,9 @@ abstract class ExecutorTest extends FlatSpec with Matchers with BeforeAndAfterAl
         val workdir = wd
         val contentIn = workdir.resolve("content.in")
         resource.managed(new PrintWriter(contentIn.toFile)).foreach(_.println(content))
-        val resultT = executor.process(workdir, "")(command)
+        val resultT = getTestExecutor().process(workdir, "")(command)
 
+        if(resultT.isFailure) resultT.get
         resultT.isSuccess should equal(true)
         val result = resultT.get
         val contentPath = workdir.resolve("content.out")
