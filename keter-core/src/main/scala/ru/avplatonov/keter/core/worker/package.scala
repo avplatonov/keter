@@ -38,11 +38,10 @@ package object worker {
         val IN, OUT = Value
     }
 
-    case class ResourcesDescriptor(values: Map[String, (Path, ResourceType.Value)])
+    case class LocalResourceDescriptors(values: Map[String, (Path, ResourceType.Value)])
 
     case class ResourceHandler()
 
     case class TaskDescriptor(script: ScriptTemplate, containerDesc: ContainerDescriptor)
 
-    case class Work(desc: TaskDescriptor, environment: ResourcesDescriptor)
 }

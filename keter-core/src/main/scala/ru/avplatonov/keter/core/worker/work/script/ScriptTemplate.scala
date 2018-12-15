@@ -17,13 +17,13 @@
 
 package ru.avplatonov.keter.core.worker.work.script
 
-import ru.avplatonov.keter.core.worker.{ParameterDescriptor, ParameterDescriptors, ParameterType, ResourcesDescriptor}
+import ru.avplatonov.keter.core.worker._
 
 case class ScriptTemplate(body: String) {
     private val parametersRegex = "\\$\\{PARAM\\.(.*?)\\}".r
     private val filesRegex = "\\$\\{(?:(?:IN)|(?:OUT))\\.(.*?)\\}".r
 
-    def toCommand(parameters: ParameterDescriptors, resDesc: ResourcesDescriptor): String = {
+    def toCommand(parameters: ParameterDescriptors, resDesc: LocalResourceDescriptors): String = {
         val withParams: String => String = pasteValues(parameters)
         val withFiles: String => String = pasteFilePaths(resDesc)
         (withParams andThen withFiles)(body)
@@ -44,7 +44,7 @@ case class ScriptTemplate(body: String) {
         body
     }
 
-    private def pasteFilePaths(resDesc: ResourcesDescriptor)(body: String): String = checkMissingFiles(
+    private def pasteFilePaths(resDesc: LocalResourceDescriptors)(body: String): String = checkMissingFiles(
         resDesc.values.foldLeft(body)({
             case (script, (filename, (path, fileType))) =>
                 script.replaceAllLiterally("$" + s"{$fileType.$filename}", s"'${path.toAbsolutePath}'")
