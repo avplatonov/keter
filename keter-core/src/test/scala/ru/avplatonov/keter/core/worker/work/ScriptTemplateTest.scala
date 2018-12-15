@@ -13,18 +13,18 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ParameterDescriptors(values)
 
     it must "return empty string" in {
-        ScriptTemplate("").toCommand(Map[String, ParameterDescriptor](), ResourcesDescriptor(Map.empty)) should equal("")
+        ScriptTemplate("").toCommand(Map[String, ParameterDescriptor](), LocalResourceDescriptors(Map.empty)) should equal("")
     }
 
     it must "return same string" in {
-        ScriptTemplate("boo").toCommand(Map[String, ParameterDescriptor](), ResourcesDescriptor(Map.empty)) should equal("boo")
+        ScriptTemplate("boo").toCommand(Map[String, ParameterDescriptor](), LocalResourceDescriptors(Map.empty)) should equal("boo")
     }
 
     it must "return int pasted value from parameter" in {
         ScriptTemplate("${PARAM.SOME_PARAM}")
             .toCommand(
                 Map("SOME_PARAM" -> ParameterDescriptor(42, ParameterType.INT)),
-                ResourcesDescriptor(Map.empty)
+                LocalResourceDescriptors(Map.empty)
             ) should equal("42")
     }
 
@@ -32,7 +32,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ScriptTemplate("${PARAM.SOME_PARAM}")
             .toCommand(
                 Map("SOME_PARAM" -> ParameterDescriptor(42, ParameterType.INT)),
-                ResourcesDescriptor(Map.empty)
+                LocalResourceDescriptors(Map.empty)
             ) should equal("42")
     }
 
@@ -40,7 +40,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ScriptTemplate("${PARAM.SOME_PARAM}")
             .toCommand(
                 Map("SOME_PARAM" -> ParameterDescriptor(4.2000001, ParameterType.DOUBLE)),
-                ResourcesDescriptor(Map.empty)
+                LocalResourceDescriptors(Map.empty)
             ) should equal("4.20")
     }
 
@@ -48,7 +48,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ScriptTemplate("${PARAM.SOME_PARAM}")
             .toCommand(
                 Map("SOME_PARAM" -> ParameterDescriptor("42", ParameterType.STRING)),
-                ResourcesDescriptor(Map.empty)
+                LocalResourceDescriptors(Map.empty)
             ) should equal("'42'")
     }
 
@@ -56,7 +56,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ScriptTemplate("${IN.SOME_FILE}")
             .toCommand(
                 Map[String, ParameterDescriptor](),
-                ResourcesDescriptor(Map("SOME_FILE" -> (Paths.get("/tmp"), ResourceType.IN)))
+                LocalResourceDescriptors(Map("SOME_FILE" -> (Paths.get("/tmp"), ResourceType.IN)))
             ) should equal("'/tmp'")
     }
 
@@ -64,7 +64,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ScriptTemplate("${OUT.SOME_FILE}")
             .toCommand(
                 Map[String, ParameterDescriptor](),
-                ResourcesDescriptor(Map("SOME_FILE" -> (Paths.get("/tmp"), ResourceType.OUT)))
+                LocalResourceDescriptors(Map("SOME_FILE" -> (Paths.get("/tmp"), ResourceType.OUT)))
             ) should equal("'/tmp'")
     }
 
@@ -77,7 +77,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
                 "SOME_PARAM_2" -> ParameterDescriptor(4.2, ParameterType.DOUBLE),
                 "SOME_PARAM_3" -> ParameterDescriptor("some string", ParameterType.STRING)
             ),
-            ResourcesDescriptor(Map.empty)
+            LocalResourceDescriptors(Map.empty)
         ) should equal("p1=42 p2=4.20 p3='some string'")
     }
 
@@ -85,7 +85,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ScriptTemplate("in=${IN.IN_FILE} out=${OUT.OUT_FILE}")
             .toCommand(
                 Map[String, ParameterDescriptor](),
-                ResourcesDescriptor(Map(
+                LocalResourceDescriptors(Map(
                     "IN_FILE" -> (Paths.get("/in_dir/in"), ResourceType.IN),
                     "OUT_FILE" -> (Paths.get("/out_dir/out"), ResourceType.OUT)
                 ))
@@ -102,7 +102,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
                     "PARAM_3" -> ParameterDescriptor("42", ParameterType.STRING),
                     "PARAM_4" -> ParameterDescriptor("fuck you", ParameterType.STRING)
                 ),
-                ResourcesDescriptor(Map(
+                LocalResourceDescriptors(Map(
                     "IN_FILE" -> (Paths.get("/in_dir/in"), ResourceType.IN),
                     "OUT_FILE" -> (Paths.get("/out_dir/out"), ResourceType.OUT),
                     "LOG_FILE" -> (Paths.get("/out_dir/log"), ResourceType.OUT)
@@ -115,7 +115,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
             "p1=${PARAM.42_PARAM} p2=${PARAM.42_PARAM}"
         ).toCommand(
             Map("42_PARAM" -> ParameterDescriptor(42, ParameterType.INT)),
-            ResourcesDescriptor(Map.empty)
+            LocalResourceDescriptors(Map.empty)
         ) should equal("p1=42 p2=42")
     }
 
@@ -123,7 +123,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
         ScriptTemplate("out_1=${OUT.FILE} out_2=${OUT.FILE}")
             .toCommand(
                 Map[String, ParameterDescriptor](),
-                ResourcesDescriptor(Map(
+                LocalResourceDescriptors(Map(
                     "FILE" -> (Paths.get("/out_dir/out"), ResourceType.OUT)
                 ))
             ) should equal("out_1='/out_dir/out' out_2='/out_dir/out'")
@@ -135,7 +135,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
                 "p1=${PARAM.42_PARAM} p2=${PARAM.MISSING_PARAMETER}"
             ).toCommand(
                 Map("42_PARAM" -> ParameterDescriptor(42, ParameterType.INT)),
-                ResourcesDescriptor(Map.empty)
+                LocalResourceDescriptors(Map.empty)
             )
         }.missingParams.toSet should equal(Set("MISSING_PARAMETER"))
     }
@@ -145,7 +145,7 @@ class ScriptTemplateTest extends FlatSpec with Matchers {
             ScriptTemplate("f1=${IN.FILE_1} f2=${OUT.MISSING_FILE}")
                 .toCommand(
                     Map[String, ParameterDescriptor](),
-                    ResourcesDescriptor(Map.empty)
+                    LocalResourceDescriptors(Map.empty)
                 )
         }.missingFiles.toSet should equal(Set("FILE_1", "MISSING_FILE"))
     }
