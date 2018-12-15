@@ -23,7 +23,7 @@ import com.spotify.docker.client.DockerClient
 
 import scala.concurrent.Future
 
-case class ContainerDescriptor(name: String, repository: String)
+trait ContainerDescriptor
 
 trait TDocker {
     def start(command: String, workdir: Path): Future[Unit]

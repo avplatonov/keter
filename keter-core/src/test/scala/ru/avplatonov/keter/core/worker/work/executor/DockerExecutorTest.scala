@@ -15,10 +15,17 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.worker.work
+package ru.avplatonov.keter.core.worker.work.executor
 
-import ru.avplatonov.keter.core.worker.{ResourcesDescriptor, Work}
+import com.spotify.docker.client.{DefaultDockerClient, DockerClient}
 
-trait Worker {
-    def process(work: Work): Either[Exception, ResourcesDescriptor]
+class DockerExecutorTest extends ExecutorTest {
+    var docker: DockerClient = new DefaultDockerClient("http://localhost:2375")
+
+    override protected def afterAll(): Unit = {
+        super.afterAll()
+        docker.close()
+    }
+
+    override protected def getTestExecutor(): Executor = new DockerExecutor(_ => getLogger())(docker, "aplatonov/linux_with_java")
 }

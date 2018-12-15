@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import ru.avplatonov.keter.backend.db.GraphsDB;
+import ru.avplatonov.keter.backend.db.NodesDB;
 
 import java.util.Arrays;
 
@@ -20,11 +22,14 @@ import java.util.Arrays;
 public class Application {
 
     public static ApplicationContext context;
-
+    public static GraphsDB graphsDB;
+    public static NodesDB nodesDB;
     private Logger logger = LoggerFactory.getLogger(Application.class);
 
 	public static void main(String[] args) {
-
+        context = new AnnotationConfigApplicationContext(GraphsDB.class, NodesDB.class);
+        graphsDB = context.getBean(GraphsDB.class);
+        nodesDB = context.getBean(NodesDB.class);
         SpringApplication.run(Application.class, args);
     }
 

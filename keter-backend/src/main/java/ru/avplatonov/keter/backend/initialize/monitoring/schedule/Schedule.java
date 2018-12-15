@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class Schedule {
 
-    private UUID uuidShedule = UUID.randomUUID();
+    private UUID uuidSchedule = UUID.randomUUID();
     private String graphName;
     private String state;
     private String author;
@@ -14,8 +14,8 @@ public class Schedule {
     private Timestamp end;
     private List<String> tags;
 
-    public UUID getUuidShedule() {
-        return uuidShedule;
+    public UUID getUuidSchedule() {
+        return uuidSchedule;
     }
 
     public String getGraphName() {

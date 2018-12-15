@@ -11,7 +11,6 @@ import ru.avplatonov.keter.backend.initialize.monitoring.schedule.Schedule;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +19,7 @@ import java.util.Optional;
 @EnableAutoConfiguration
 public class ScheduleList {
 
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
     @RequestMapping(value = "/graph/status")
     public List<Schedule> schedule(
             @RequestParam Optional<String> filter

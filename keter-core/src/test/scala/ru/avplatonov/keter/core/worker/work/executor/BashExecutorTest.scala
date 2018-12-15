@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.worker.work
+package ru.avplatonov.keter.core.worker.work.executor
 
-import ru.avplatonov.keter.core.worker.{ResourcesDescriptor, Work}
-
-trait Worker {
-    def process(work: Work): Either[Exception, ResourcesDescriptor]
+class BashExecutorTest extends ExecutorTest {
+    override protected def getTestExecutor(): Executor = BashExecutor(_ => getLogger())()
 }

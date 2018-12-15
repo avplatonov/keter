@@ -17,30 +17,21 @@
 
 package ru.avplatonov.keter.core.worker.work.script
 
-import ru.avplatonov.keter.core.worker.resources.ResourcesDescriptor
+import ru.avplatonov.keter.core.worker.{ParameterDescriptor, ParameterDescriptors, ParameterType, ResourcesDescriptor}
 
-object ParameterType extends Enumeration {
-    type ParameterType = Value
-
-    val INT, DOUBLE, STRING = Value
-}
-
-case class ParameterDescriptor(value: Any, `type`: ParameterType.Value)
-
-case class ScriptTemplate(body: String, parameters: Map[String, ParameterDescriptor]) {
+case class ScriptTemplate(body: String) {
     private val parametersRegex = "\\$\\{PARAM\\.(.*?)\\}".r
     private val filesRegex = "\\$\\{(?:(?:IN)|(?:OUT))\\.(.*?)\\}".r
 
-
-    def toCommand(resDesc: ResourcesDescriptor): String = {
+    def toCommand(parameters: ParameterDescriptors, resDesc: ResourcesDescriptor): String = {
         val withParams: String => String = pasteValues(parameters)
         val withFiles: String => String = pasteFilePaths(resDesc)
         (withParams andThen withFiles)(body)
     }
 
-    private def pasteValues(parameters: Map[String, ParameterDescriptor])(body: String): String =
+    private def pasteValues(parameters: ParameterDescriptors)(body: String): String =
         checkMissingParameters(
-            parameters.foldLeft(body)({
+            parameters.values.foldLeft(body)({
                 case (script, (paramName, desc)) =>
                     script.replaceAllLiterally("$" + s"{PARAM.$paramName}", toString(desc))
             })
