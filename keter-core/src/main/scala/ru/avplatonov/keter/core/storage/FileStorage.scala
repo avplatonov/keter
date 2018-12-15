@@ -21,6 +21,7 @@ import java.io.{InputStream, OutputStream}
 
 import resource.ManagedResource
 import ru.avplatonov.keter.core.messages.Messages
+import ru.avplatonov.keter.core.storage.local.LocalFileDescriptor
 
 import scala.collection.JavaConverters._
 
@@ -122,4 +123,6 @@ trait FileStorage[T <: FileDescriptor] {
       * @return stream resource.
       */
     def write(desc: T): ManagedResource[OutputStream]
+
+    def localCopy(from: T, to: LocalFileDescriptor): Boolean = ???
 }

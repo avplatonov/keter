@@ -21,10 +21,11 @@ import java.nio.file.Path
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
+import ru.avplatonov.keter.core.storage.local.LocalFileDescriptor
 import ru.avplatonov.keter.core.storage.{FileDescriptor, FileStorage}
 import ru.avplatonov.keter.core.worker.work.executor.{Executor, ExecutorResult}
 import ru.avplatonov.keter.core.worker.work.script.ScriptTemplate
-import ru.avplatonov.keter.core.worker.{LocalResourceDescriptors, ParameterDescriptors}
+import ru.avplatonov.keter.core.worker.{LocalResourceDescriptors, ParameterDescriptors, ResourceType}
 
 import scala.util.Try
 
@@ -43,22 +44,22 @@ case class Worker(executor: Executor, fileStorage: FileStorage[FileDescriptor]) 
     val logger = LoggerFactory.getLogger("worker")
 
     def apply(environment: WorkEnvironment, script: String): WorkResult = {
-        createLocalSession(environment)
-            .flatMap(prepareWD)
+        initLocalSession(environment)
             .map(ses => ses.copy(cmd = script))
-            .flatMap(prepareScript)
+            .flatMap(ses => prepareScript(ses).map(cmd => ses.copy(cmd = cmd)))
+            .flatMap(ses => initWorkingDir(ses).map(res => ses.copy(localRes = res)))
             .flatMap(ses => executor.process(ses.localWD, null)(ses.cmd))
             .flatMap(processWorkingResult)
             .get
     }
 
-    def createLocalSession(environment: WorkEnvironment): Try[LocalSession] = Try {
+    def initLocalSession(environment: WorkEnvironment): Try[LocalSession] = Try {
         val abcentFiles = environment.input.filterNot(fileStorage.exists).map(_.key)
-        if(abcentFiles.nonEmpty)
+        if (abcentFiles.nonEmpty)
             throw new IllegalArgumentException(s"These input files doesn't exists: [${abcentFiles.mkString(",")}]")
 
         val alreadyExistsFiles = environment.output.filter(fileStorage.exists)
-        if(alreadyExistsFiles.nonEmpty)
+        if (alreadyExistsFiles.nonEmpty)
             throw new IllegalArgumentException(s"These output files already exists: [${alreadyExistsFiles.mkString(",")}]")
 
         val localWD = environment.workdir.resolve(UUID.randomUUID().toString)
@@ -66,13 +67,38 @@ case class Worker(executor: Executor, fileStorage: FileStorage[FileDescriptor]) 
         LocalSession(environment, localWD, null, "")
     }
 
-    def prepareWD(session: LocalSession): Try[LocalSession] = {
-        Try(session)
+    def initWorkingDir(session: LocalSession): Try[LocalResourceDescriptors] = Try {
+        val keyToDesc: Map[String, FileDescriptor] = session.environment.input.map(desc => desc.key -> desc).toMap
+
+        val inputFiles = session.environment.input
+            .map(desc => descToLocalFile(session.localWD, desc, ResourceType.IN))
+            .toMap
+
+        val ouputFiles = session.environment.output
+            .map(desc => descToLocalFile(session.localWD, desc, ResourceType.OUT))
+            .toMap
+
+        inputFiles.foreach({
+            case (key, (localPath, _)) =>
+                val remoteDesc = keyToDesc(key)
+                val localDesc = LocalFileDescriptor(localPath, remoteDesc.path, remoteDesc.key, None)
+                val localDir = localPath.getParent
+                localDir.toFile.mkdirs()
+                fileStorage.localCopy(remoteDesc, localDesc)
+        })
+
+        LocalResourceDescriptors(inputFiles ++ ouputFiles)
     }
 
-    def prepareScript(session: LocalSession): Try[LocalSession] = Try(session.copy(cmd =
+    def descToLocalFile(localWD: Path, desc: FileDescriptor, `type`: ResourceType.Value): (String, (Path, ResourceType.Value)) = {
+        val localPath = desc.path.foldLeft(localWD)((acc, key) => acc.resolve(key)).resolve(desc.key)
+        val localDir = localPath.getParent
+        (desc.key, (localPath, `type`))
+    }
+
+    def prepareScript(session: LocalSession): Try[String] = Try {
         ScriptTemplate(session.cmd).toCommand(session.environment.parameters, session.localRes)
-    ))
+    }
 
     def processWorkingResult(exRes: ExecutorResult): Try[WorkResult] = Try {
         null

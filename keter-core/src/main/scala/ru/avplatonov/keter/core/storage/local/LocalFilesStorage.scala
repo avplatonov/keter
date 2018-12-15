@@ -188,4 +188,6 @@ object LocalFilesStorage extends FileStorage[LocalFileDescriptor] {
     private def toDesc(jpath: Path): LocalFileDescriptor = LocalFileDescriptorParser.parse(jpath.toString).copy(
         isDir = Some(Files.isDirectory(jpath))
     )
+
+    override def localCopy(from: LocalFileDescriptor, to: LocalFileDescriptor): Boolean = copy(from, to, true)
 }
