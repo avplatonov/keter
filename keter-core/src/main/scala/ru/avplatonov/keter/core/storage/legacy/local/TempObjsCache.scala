@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.local
+package ru.avplatonov.keter.core.storage.legacy.local
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger

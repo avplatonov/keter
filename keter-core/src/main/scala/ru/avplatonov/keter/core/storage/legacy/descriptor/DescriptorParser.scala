@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.descriptor
+package ru.avplatonov.keter.core.storage.legacy.descriptor
 
-import ru.avplatonov.keter.core.storage.{FileDescriptor, PathScheme}
+import ru.avplatonov.keter.core.storage.PathScheme
+import ru.avplatonov.keter.core.storage.legacy.FileDescriptor
 
 /**
   * Represents API for parsing file descriptors.

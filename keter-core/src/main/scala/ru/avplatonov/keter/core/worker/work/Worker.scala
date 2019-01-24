@@ -21,8 +21,8 @@ import java.nio.file.Path
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
-import ru.avplatonov.keter.core.storage.local.LocalFileDescriptor
-import ru.avplatonov.keter.core.storage.{FileDescriptor, FileStorage}
+import ru.avplatonov.keter.core.storage.legacy.local.LocalFileDescriptor
+import ru.avplatonov.keter.core.storage.legacy.{FileDescriptor, FileStorage}
 import ru.avplatonov.keter.core.worker.work.executor.{Executor, ExecutorResult}
 import ru.avplatonov.keter.core.worker.work.script.ScriptTemplate
 import ru.avplatonov.keter.core.worker.{LocalResourceDescriptors, ParameterDescriptors, ResourceType}

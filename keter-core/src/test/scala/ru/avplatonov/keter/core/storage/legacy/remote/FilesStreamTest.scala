@@ -1,4 +1,4 @@
-package ru.avplatonov.keter.core.storage.remote
+package ru.avplatonov.keter.core.storage.legacy.remote
 
 import java.io.{FileOutputStream, PrintWriter}
 import java.nio.file.{Files, Path}
@@ -9,8 +9,8 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import ru.avplatonov.keter.core.discovery.{DiscoveryService, Node, RemoteNode, ZookeeperDiscoveryService}
-import ru.avplatonov.keter.core.storage.local.LocalFileDescriptorParser
-import ru.avplatonov.keter.core.storage.remote.stream.{DirectoryCopyingException, DownloadedFile, FilesStream, FilesStreamOnTcp}
+import ru.avplatonov.keter.core.storage.legacy.local.LocalFileDescriptorParser
+import ru.avplatonov.keter.core.storage.legacy.remote.stream.{DirectoryCopyingException, DownloadedFile, FilesStream, FilesStreamOnTcp}
 
 import scala.collection.mutable
 import scala.concurrent.duration._

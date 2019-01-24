@@ -15,29 +15,36 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage
+package ru.avplatonov.keter.core.storage.legacy.remote.stream
 
-import java.nio.file.Path
+import java.io.File
+
+import ru.avplatonov.keter.core.discovery.RemoteNode
+import ru.avplatonov.keter.core.service.Service
+import ru.avplatonov.keter.core.storage.legacy.FileDescriptor
+
+import scala.util.Try
 
 /**
-  * Interface for distributed file storage with local file system caching.
+  * Remote files abstraction.
+  * Just wrapper for future.
   */
-trait DistributedFileStorageWithCache[T <: FileDescriptor] extends FileStorage[T] {
+trait RemoteFiles {
     /**
-      * Download file from distributed storage to local file system.
-      *
-      * @param remoteDileDesc Remote file descriptor.
-      * @param locPath        Local path for caching.
-      * @return true if operation was successful.
+      * @return true if files was downloaded.
       */
-    def pull(remoteDileDesc: T, locPath: Path): Boolean
+    def isReady: Boolean
 
     /**
-      * Flush file to distributed storage from local file system.
+      * Awaits files and return downloaded files list.
       *
-      * @param locPath        Local path in cache.
-      * @param remoteDileDesc Remote file descriptor.
-      * @return true if operation was successful.
+      * @return downloaded files list.
       */
-    def push(locPath: Path, remoteDileDesc: T): Boolean
+    def get(): Try[List[DownloadedFile]]
+}
+
+case class DownloadedFile(originalDescriptor: FileDescriptor, file: File)
+
+trait FilesStream extends Service {
+    def download(files: List[FileDescriptor], from: RemoteNode): RemoteFiles
 }

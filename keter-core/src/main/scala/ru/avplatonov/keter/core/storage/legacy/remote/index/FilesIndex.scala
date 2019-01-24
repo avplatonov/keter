@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote.index
+package ru.avplatonov.keter.core.storage.legacy.remote.index
 
 import java.util.UUID
 
 import ru.avplatonov.keter.core.discovery.NodeId
 import ru.avplatonov.keter.core.discovery.messaging.Message
-import ru.avplatonov.keter.core.storage.FileDescriptor
+import ru.avplatonov.keter.core.storage.legacy.FileDescriptor
 
 case class ExchangeFileIndexesMessage(index: FilesIndex, from: NodeId) extends Message {
     override val id: String = UUID.randomUUID().toString

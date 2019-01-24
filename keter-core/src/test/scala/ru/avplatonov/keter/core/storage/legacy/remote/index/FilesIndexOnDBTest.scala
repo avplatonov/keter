@@ -1,4 +1,4 @@
-package ru.avplatonov.keter.core.storage.remote.index
+package ru.avplatonov.keter.core.storage.legacy.remote.index
 
 import java.nio.file.{Files, Path}
 

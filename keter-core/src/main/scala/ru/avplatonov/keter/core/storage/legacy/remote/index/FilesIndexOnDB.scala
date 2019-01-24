@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote.index
+package ru.avplatonov.keter.core.storage.legacy.remote.index
 
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 
 import org.slf4j.LoggerFactory
+import ru.avplatonov.keter.core.discovery
 import ru.avplatonov.keter.core.discovery.DiscoveryService
-import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
-import ru.avplatonov.keter.core.{discovery, storage}
+import ru.avplatonov.keter.core.storage.legacy.FileDescriptor
+import ru.avplatonov.keter.core.storage.legacy.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
 
 import scala.util.Random
 
@@ -52,22 +53,22 @@ case class FilesIndexOnDB(db: FilesDB, localWorkingDir: Path, discoveryService: 
     private def removeWDPrefix(str: String): String =
         str.replaceFirst(localWorkingDir.toString, "/")
 
-    override def defineLocation(desc: storage.FileDescriptor): Option[discovery.NodeId] = {
+    override def defineLocation(desc: FileDescriptor): Option[discovery.NodeId] = {
         val key = makeIndexKey(desc)
         if (localIndexRef.get().contains(key.hashCode)) Some(localNodeId)
         else db.find(key).map(r => selectRandomElement(r.replicas))
     }
 
-    override def index(desc: storage.FileDescriptor): Unit =
+    override def index(desc: FileDescriptor): Unit =
         db.insert(makeIndexKey(desc), FilesIndexRow(desc, Set(localNodeId)))
 
     override def remove(target: discovery.NodeId): Unit =
         db.deleteAllFor(target)
 
-    override def remove(target: storage.FileDescriptor): Unit =
+    override def remove(target: FileDescriptor): Unit =
         db.delete(RowKey(makeIndexKey(target), localNodeId))
 
-    private def makeIndexKey(desc: storage.FileDescriptor): String =
+    private def makeIndexKey(desc: FileDescriptor): String =
         if (desc.path.isEmpty) s"//${desc.key}"
         else s"//${desc.path.mkString("/")}/${desc.key}"
 

@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote
+package ru.avplatonov.keter.core.storage.legacy.remote
 
 import java.util.concurrent.atomic.AtomicReference
 
 import ru.avplatonov.keter.core.discovery.{DiscoveryService, NodeId, Topology, TopologyDiff}
 import ru.avplatonov.keter.core.messages.Messages
-import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFilesStorage}
-import ru.avplatonov.keter.core.storage.remote.index.FilesIndex
-import ru.avplatonov.keter.core.storage.remote.stream.FilesStream
-import ru.avplatonov.keter.core.storage.{FileDescriptor, PathScheme}
+import ru.avplatonov.keter.core.storage.PathScheme
+import ru.avplatonov.keter.core.storage.legacy.FileDescriptor
+import ru.avplatonov.keter.core.storage.legacy.local.{LocalFileDescriptor, LocalFilesStorage}
+import ru.avplatonov.keter.core.storage.legacy.remote.index.FilesIndex
+import ru.avplatonov.keter.core.storage.legacy.remote.stream.FilesStream
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future

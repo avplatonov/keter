@@ -20,7 +20,7 @@ package ru.avplatonov.keter.core.storage
 import java.nio.file.Paths
 
 import org.scalatest.{FlatSpec, Matchers}
-import ru.avplatonov.keter.core.storage.local.{CacheRowHolder, LocalFileDescriptor, LocalFileDescriptorParser, LocalTemporaryFilesStorage}
+import ru.avplatonov.keter.core.storage.legacy.local.{CacheRowHolder, LocalFileDescriptor, LocalFileDescriptorParser, LocalTemporaryFilesStorage}
 
 import scala.collection.mutable
 

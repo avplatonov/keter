@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage
+package ru.avplatonov.keter.core.storage.legacy
 
 import java.io.{InputStream, OutputStream}
 
 import resource.ManagedResource
 import ru.avplatonov.keter.core.messages.Messages
-import ru.avplatonov.keter.core.storage.local.LocalFileDescriptor
+import ru.avplatonov.keter.core.storage.PathScheme
+import ru.avplatonov.keter.core.storage.legacy.local.LocalFileDescriptor
 
 import scala.collection.JavaConverters._
 

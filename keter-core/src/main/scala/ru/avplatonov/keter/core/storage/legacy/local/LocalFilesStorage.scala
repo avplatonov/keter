@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.local
+package ru.avplatonov.keter.core.storage.legacy.local
 
 import java.io.{InputStream, OutputStream}
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
@@ -23,7 +23,8 @@ import java.util.stream.Collectors
 
 import resource.ManagedResource
 import ru.avplatonov.keter.core.storage._
-import ru.avplatonov.keter.core.storage.descriptor.DescriptorParser
+import ru.avplatonov.keter.core.storage.legacy.descriptor.DescriptorParser
+import ru.avplatonov.keter.core.storage.legacy.{FileDescriptor, FileStorage}
 
 import scala.collection.JavaConverters._
 

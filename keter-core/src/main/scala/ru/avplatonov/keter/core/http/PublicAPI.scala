@@ -19,7 +19,7 @@ package ru.avplatonov.keter.core.http
 
 import java.util.UUID
 
-import ru.avplatonov.keter.core.storage.FileDescriptor
+import ru.avplatonov.keter.core.storage.legacy.FileDescriptor
 import ru.avplatonov.keter.core.task.TaskStatus
 import ru.avplatonov.keter.core.task.resource.ResourceType
 

@@ -7,7 +7,7 @@ import java.util.UUID
 import com.google.common.io.Files
 import org.apache.commons.io.FileUtils
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
+import ru.avplatonov.keter.core.storage.legacy.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
 
 import scala.io.Source
 

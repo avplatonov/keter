@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package ru.avplatonov.keter.core.storage.remote.stream
+package ru.avplatonov.keter.core.storage.legacy.remote.stream
 
 import java.io._
 import java.net.ServerSocket
@@ -28,8 +28,8 @@ import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import ru.avplatonov.keter.core.discovery.messaging.{Client, Message}
 import ru.avplatonov.keter.core.discovery.{DiscoveryService, NodeId, RemoteNode}
-import ru.avplatonov.keter.core.storage.FileDescriptor
-import ru.avplatonov.keter.core.storage.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
+import ru.avplatonov.keter.core.storage.legacy.FileDescriptor
+import ru.avplatonov.keter.core.storage.legacy.local.{LocalFileDescriptor, LocalFileDescriptorParser, LocalFilesStorage}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._

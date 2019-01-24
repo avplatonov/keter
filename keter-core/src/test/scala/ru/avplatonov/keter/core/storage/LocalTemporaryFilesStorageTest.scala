@@ -4,8 +4,8 @@ import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
 import org.scalatest.{FlatSpec, Matchers}
-import ru.avplatonov.keter.core.storage.local.LocalTemporaryFilesStorage.Settings
-import ru.avplatonov.keter.core.storage.local._
+import ru.avplatonov.keter.core.storage.legacy.local.LocalTemporaryFilesStorage.Settings
+import ru.avplatonov.keter.core.storage.legacy.local._
 
 class LocalTemporaryFilesStorageTest extends FlatSpec with Matchers {
     val tmpdir: Path = Paths.get("/tmp/test")
