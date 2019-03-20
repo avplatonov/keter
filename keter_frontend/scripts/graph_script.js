@@ -262,14 +262,21 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
         }
     } else {
         let groupOutputs = r.ellipse(cx + WIDTH / 2, cy, 3, 30);
-        groupOutputs.attr({fill: outColor, stroke: outColor, "fill-opacity": 0.9, "stroke-width": 2, cursor: "move"});   
+        groupOutputs.attr({fill: outColor, stroke: outColor, "fill-opacity": 0.9, "stroke-width": 2, cursor: "move"}); 
+        let allOutputsInGroup = r.rect(cx + WIDTH/2+10, cy - HEIGHT / 2, 40, HEIGHT, 10);  
+        allOutputsInGroup.attr({fill: "green", stroke: "white", "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
+      
          
         groupOutputs.node.onmouseover = function() {
             groupOutputs.attr("fill", "blue");
+            groupingPins("output", outputs_count, outColor, rec, HEIGHT, WIDTH, cx, cy, col).show();
+            allOutputsInGroup.show();
         };
         groupOutputs.node.onmouseout = function() {
             groupOutputs.attr("fill", outColor);
+            allOutputsInGroup.hide();
         };
+        col.push(allOutputsInGroup);
         col.push(groupOutputs); 
     }   
     
@@ -278,8 +285,21 @@ var add_elem = function (cx, cy, inputs_count, outputs_count, node_name) {
     
 };
 
-var groupingPins = function(){
-
+var groupingPins = function(pinsType, pinsCount, outColor, rec, HEIGHT_node, WIDTH_node, cx, cy, col){
+    if(pinsType == "output"){
+        for(var i = 0; i < pinsCount; i++) {
+            let heightDelta = 2*pinsCount;// / (pinsCount + 1);
+            let elem = r.ellipse(cx + WIDTH_node / 2 +10, cy - HEIGHT_node / 2 + heightDelta * (i + 1), 5, 5);
+            elem.idx = i;
+            elem.rect_id = rect_id;
+           
+            elem.attr({fill: outColor, stroke: outColor, "fill-opacity": 1.0, "stroke-width": 2, cursor: "move"});
+            elem.click(outputClick(rec.rect_id, i));
+            let outputName = r.text(cx + WIDTH_node / 2+20, cy - HEIGHT_node / 2 + heightDelta * (i + 1), i).attr({fill: "#fff"});
+            col.push(elem); 
+            col.push(outputName)
+        }
+    }
 } 
 
 /*var testCreateManyNodes = function(x0, y0, numNodes, numInputs, numOutputs){
@@ -295,7 +315,8 @@ btn_done.onclick = function(){
     var node_name_from_user = document.add_node.node_name.value;
     var inputs_count_from_user = parseInt(document.add_node.node_num_input.value);
     var outputs_count_from_user = parseInt(document.add_node.node_num_output.value);
-    add_elem(290, 80, inputs_count_from_user, outputs_count_from_user, node_name_from_user);
+    //add_elem(290, 80, inputs_count_from_user, outputs_count_from_user, node_name_from_user);
+    add_elem(290, 80, 1, 8, "1");
     //testCreateManyNodes(100,100, 1, 5, 5);
 };
 

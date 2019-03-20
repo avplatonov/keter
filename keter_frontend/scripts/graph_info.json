@@ -1,0 +1,26 @@
+{
+graph_parameters: [{name:"graph_parameter_name", type:int/double/string}]
+nodes = [
+    node_0 : { //идентификатор ноды будет генерироваться на верстке и служит локальной меткой для определения связей в графе
+        node_name: "name_1",
+        node_id  : "asdaksdasd", //это индентификатор шаблона, который был получен при создании шаблона ноды
+        inputs: [],
+        ouputs: [
+            "out_1" : { node_id : node_1, in : "in_1" }, // "out_1" - это имя из описания ноды, так же как и "in_1", node_1 - локальный идентификатор ноды в шаблоне графа
+            "out_2" : { node_id : node_2, in : "in_2" }
+        ],
+        parameters : {
+            "node_0_parameter_name" : ${graph_parameter_name} //переопределение биндинга - теперь параметр при запуске ноды будет браться из настроек графа,
+        }
+    },
+
+    node_1 : {
+        node_name: "name_2",
+        node_id  : "sdoijgfsepd9fuwf",
+        inputs: ["in_1" : { node_id : node_0, out : "out_1"}], //дублируем инфу - так читабельней, ну и хрен с ним
+        ouputs: ["out_3" : { node_id : node_3, in : "in_3" }
+        ],
+        parameters : {
+        }  
+    }
+]}
