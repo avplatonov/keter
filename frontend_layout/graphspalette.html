@@ -1,0 +1,101 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<link href='http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900' 
+	rel='stylesheet' type='text/css'>
+	<link href="style.css" rel="stylesheet" type="text/css" media="all" />
+	<title>Keter</title>
+	<!--<script src="ourscriptik.js"> </script>-->	
+<style>
+    td select,
+    td input {
+      width: 150px;
+    }
+    
+    label {
+      display: block;
+    }
+    
+    .error input,
+    .error textarea {
+      border: 1px solid red;
+    }
+    
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+	<header>
+	  <div class="wrap header logo">
+	  <a  href=""> <img src="header.png" class="img-responsive"/> </a>   
+		  <div class="nav">		  
+			  <ul>   
+				  <li><a href="#">Schedule</a></li>
+				  <li> <a href="#">Grahps palette</a></li>
+				  <li><a href="#">Nodes palette</a></li>
+				  <li><a href="#">Cluster</a></li>
+				  <li class="nav2"><a href="#">Settings</a></li>
+				  <li class="nav2"><a href="#">Log out</a></li>
+			  </ul>  
+		  </div>
+	  </div> 
+	</header>
+	
+<ul id="myUL">
+  <li><span class="caret">All</span>
+    <ul class="nested">
+      <li><span class="caret">Text processing</span>
+        <ul class="nested">
+          <li>Doc annotation</li>
+          <li>Merge ontologies</li>
+		  <li>+</li>
+         
+        </ul>
+      </li>
+	        <li><span class="caret">Mashine Learning</span>
+        <ul class="nested">
+          <li>Learn and estimate QI</li>
+          <li>Prepare data pull</li>
+		  <li>+</li>
+         
+        </ul>
+      </li>
+<li><span class="caret">Experiments</span>
+            <ul class="nested">
+			<li><span class="caret">%username0</span>
+			<ul class="nested">
+              <li>path_0</li>
+              <li>exp_0</li>
+			  <li>+</li>
+            </ul>
+			</li>
+			<li><span class="caret">%username1</span>
+			<ul class="nested">
+              <li>path_1</li>
+              <li>exp_1</li>
+			  <li>+</li>
+            </ul>
+			</li>
+         </ul> 
+        </li>
+	<li>+</li>
+    </ul>
+  </li>
+</ul>	
+
+<script>
+var toggler = document.getElementsByClassName("caret");
+var i;
+
+for (i = 0; i < toggler.length; i++) {
+  toggler[i].addEventListener("DOMContentLoaded", function() {
+    this.parentElement.querySelector(".nested").classList.toggle("active");
+    this.classList.toggle("caret-down");
+  });
+}
+</script>
+	
+</body>
+</html>

@@ -1,0 +1,331 @@
+body {
+  font-family: 'Lato', Verdana;
+  font-size: 100%;
+  //background: white;
+  //-webkit-align-items: center;  
+ // -ms-flex-align: center;  
+  //align-items: center;
+  //display: -webkit-flex;
+  //display: flex;
+  //flex-flow: column;
+}
+
+.img-responsive
+{
+  max-width: 100%;
+  height: auto;
+  float: left;
+}
+
+.wrap
+{
+  width: 100%;  /* отступы относительно окна браузера */
+  background: #3538e5;
+  height: 45px;
+}
+
+.wrap2
+{
+    background: #3538e5;
+    height: 230px;
+    margin-left: 30%;
+    margin-right: 30%;
+}
+margin-left: 200 px; /* Отступ слева */
+   /*  margin-right: 50 px; */
+}
+
+.nav {
+  //float: center;   /* обтекание логотипа */
+  //margin-top: 0.82em;
+}
+.nav > ul > li {
+  display:inline-block;  /* переопределение в строчно-блочный  */
+}
+.nav > ul > li.active a{
+  background: d7d0c9;
+  color: #ff0000;
+  height: 27px;
+}
+.nav > ul > li > a {
+  display: block;
+  font-family: 'Lato', sans-serif;
+  font-size: 1.1em;
+  text-transform: uppercase;
+  padding: 0.5em 1em;
+  color: d7d0c9;
+  -webkit-transition: 0.9s; /* плавный переход  */
+  -moz-transition: 0.9s;
+  -o-transition: 0.9s;
+  transition: 0.9s;
+  height: 27px;
+}
+.nav > ul > li > a:hover {
+  color: blue;
+  background: violet;
+}
+.nav2{
+	float: right;
+}
+form {
+	margin:0;
+}
+.btn_under_tbl{
+	display: flex;	
+	justify-content: center;
+}
+.cool_table {
+border-spacing: 0 10px;
+font-family: 'Open Sans', sans-serif;
+font-weight: bold;
+display: flex;	
+justify-content: center;
+}
+.cool_table th {
+padding: 10px 20px;
+background: #3538e5;
+color: white;
+border-right: 2px solid; 
+font-size: 0.9em;
+}
+.cool_table th:first-child {
+text-align: left;
+}
+.cool_table th:last-child {
+border-right: none;
+}
+.cool_table td {
+vertical-align: middle;
+padding: 10px;
+font-size: 14px;
+text-align: center;
+border-top: 2px solid #56433D;
+border-bottom: 2px solid #56433D;
+border-right: 2px solid #56433D;
+}
+.cool_table td:first-child {
+border-left: 2px solid #56433D;
+
+}
+.cool_table td:nth-child(2){
+text-align: left;
+}
+
+/* невероятная кнопочка */
+a.obl{
+        position: relative;
+        display:block;
+        color: blue;
+        text-decoration: none;
+        margin: 20px auto;
+        text-align:center;
+        width:125px;
+        font-family: verdana;
+        font-size: 22px;
+        letter-spacing: 2px;
+        border-bottom: 2px solid transparent;
+}
+
+a.obl:hover,a.obl:focus{
+        outline: none;
+        border-dth:125px;
+        font-family: verdana;
+        font-size: 22px;
+        letter-spacing: 2px;
+        bobottom: 2px solid #eee;
+}
+
+a.obl::before, a.obl:after{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 70px;
+        height: 70px;
+        border: 12px double rgba(0,0,0,0.1);
+        border-radius: 50%;
+        content: '';
+        opacity: 0;
+        -webkit-transform: translateX(-50%) translateY(-50%) scale(0.2);
+        -moz-transform: translateX(-50%) translateY(-50%) scale(0.2);
+        transform: translateX(-50%) translateY(-50%) scale(0.2);
+}
+
+a.obl:after{
+        width: 60px;
+        height: 60px;
+        border-width: 6px;
+        -webkit-transform: translateX(-50%) translateY(-50%) scale(0.8);
+        -moz-transform: translateX(-50%) translateY(-50%) scale(0.8);
+        transform: translateX(-50%) translateY(-50%) scale(0.8);
+}
+
+a.obl:hover:before, a.obl:hover:after{
+        -webkit-animation: pulsate 1.2s infinite;
+        -moz-animation: pulsate 1.2s infinite;
+        -ms-animation: pulsate 1.2s infinite;
+        animation: pulsate 1.2s infinite;
+}
+
+
+/* невероятная кнопочка for red */
+a.obl2{
+        position: relative;
+        display:block;
+        color: red;
+        text-decoration: none;
+        margin: 20px auto;
+        text-align:center;
+        width:125px;
+        font-family: verdana;
+        font-size: 22px;
+        letter-spacing: 2px;
+        border: 2px solid transparent;
+		background: white;
+		border-color: white; /* Цвет границы */
+		border-style: solid; /* Стиль границы*/
+		border-radius: 50px 50px 50px 50px;
+}
+
+a.obl2:hover,a.obl:focus{
+        outline: none;
+        border-dth:125px;
+        font-family: verdana;
+        font-size: 22px;
+        letter-spacing: 2px;
+        bobottom: 2px solid #eee;
+}
+
+a.obl2::before, a.obl:after{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 70px;
+        height: 70px;
+        border: 12px double rgba(0,0,0,0.1);
+        border-radius: 50%;
+        content: '';
+        opacity: 0;
+        -webkit-transform: translateX(-50%) translateY(-50%) scale(0.2);
+        -moz-transform: translateX(-50%) translateY(-50%) scale(0.2);
+        transform: translateX(-50%) translateY(-50%) scale(0.2);
+}
+
+a.obl2:after{
+        width: 60px;
+        height: 60px;
+        border-width: 6px;
+        -webkit-transform: translateX(-50%) translateY(-50%) scale(0.8);
+        -moz-transform: translateX(-50%) translateY(-50%) scale(0.8);
+        transform: translateX(-50%) translateY(-50%) scale(0.8);
+}
+
+a.obl2:hover:before, a.obl:hover:after{
+        -webkit-animation: pulsate 1.2s infinite;
+        -moz-animation: pulsate 1.2s infinite;
+        -ms-animation: pulsate 1.2s infinite;
+        animation: pulsate 1.2s infinite;
+}
+
+
+@-webkit-keyframes pulsate{
+
+  30%{
+        opacity: 1;
+        -webkit-transform: translateX(-50%) translateY(-50%) scale(1);
+  }
+
+        100%{
+        opacity: 0.3;
+        -webkit-transform: translateX(-50%) translateY(-50%) scale(0.5);
+        }
+
+}
+
+@-moz-keyframes pulsate{
+
+  30%{
+        opacity: 1;
+        -moz-transform: translateX(-50%) translateY(-50%) scale(1);
+  }
+
+        100%{
+        opacity: 0.3;
+        -moz-transform: translateX(-50%) translateY(-50%) scale(0.5);
+        }
+
+}
+
+@-ms-keyframes pulsate{
+
+  30%{
+        opacity: 1;
+        -ms-transform: translateX(-50%) translateY(-50%) scale(1);
+  }
+
+        100%{
+        opacity: 0.3;
+        -ms-transform: translateX(-50%) translateY(-50%) scale(0.5);
+        }
+
+}
+
+@-keyframes pulsate{
+
+  30%{
+        opacity: 1;
+        transform: translateX(-50%) translateY(-50%) scale(1);
+  }
+
+        100%{
+        opacity: 0.3;
+        transform: translateX(-50%) translateY(-50%) scale(0.5);
+        }
+}
+
+/*невероЯтное дерево*/
+/* Remove default bullets */
+ul, #myUL {
+  list-style-type: none;
+}
+
+/* Remove margins and padding from the parent ul */
+#myUL {
+  margin: 0;
+  padding: 0;
+  height: 130px;
+  margin-left:10%;
+  position: absolute;
+  top: 20%;
+}
+
+/* Style the caret/arrow */
+.caret {
+  cursor: pointer; 
+  user-select: none; /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.caret::before {
+  content: "\25B6";
+  color: black;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+  transform: rotate(90deg); 
+}
+
+/* Hide the nested list */
+.nested {
+  /*display: none;*/
+  display: block;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.active {
+  /*display: block;*/
+  display: none;
+}
+

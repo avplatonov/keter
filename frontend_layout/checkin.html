@@ -1,0 +1,139 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<link href='http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900' 
+	rel='stylesheet' type='text/css'>
+	<link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
+	<title>Keter</title>
+	<!--<script src="ourscriptik.js"> </script>-->	
+<style>
+    td select,
+    td input {
+      width: 150px;
+    }
+    
+    label {
+      display: block;
+    }
+    
+    .error input,
+    .error textarea {
+      border: 1px solid red;
+    }
+    
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+	<header>
+	  <div class="wrap header logo">
+	  <a  href=""> <img src="images/header.png" class="img-responsive"/> </a>   
+	  </div> 
+	</header>
+	
+	<hr align="center" width="100%" size="2" color="#ff0000" /> 
+	<div id="err-block" style="font-size: 125%; color: red; padding:50px; margin-bottom: 20px"></div>
+	<div class="wrap2" style="font-size: 200%; color: white; padding:20px;">Welcome!
+		<form method="post" id = "auth_form" align="center"> <!-- текстовые поля ввода -->
+				<input placeholder="Имя" name="user_name">
+				<input placeholder="эл.почта" name="user_mail" type="email">
+				<input placeholder="псевдоним на сайте" name="user_nick">
+				<input placeholder="пароль" name="pswd" type="password">
+				<input placeholder="повторите пароль" name="pswd2" type="password">
+				<select name="user_role" style = "width:173px;">
+					<option value="Администратор">Администратор</option>
+					<option value="Разработчик">Разработчик</option>
+					<option value="Простой смертный">Простой смертный</option>
+				</select>
+				<a href="#" id = "btn_go" class="obl2">Go!</a>
+			</form>
+
+	</div>
+	
+<script> 
+    function showError(form, message,  element, errorBlock) {
+      if (!form.classList.contains('error')) {
+		 form.classList.add('error');
+	  }
+	  
+	  let msgElem = document.getElementById(element.name);
+      if (!msgElem) {
+		msgElem = document.createElement('span');
+		msgElem.className = "error";
+		msgElem.setAttribute('id', element.name);  
+		errorBlock.appendChild(msgElem);
+	  }
+      msgElem.innerHTML = message;
+	  element.classList.add('error');
+    }
+
+	function resetError(form, errorBlock) {
+      form.classList.remove('error');
+	  Array.prototype.slice.call(form.elements).forEach(element => {
+		  element.classList.remove('error');
+	  });
+	  errorBlock.innerHTML = '';
+    }
+
+	function validate(form) {
+      const elems = form.elements;
+      const errorBlock = document.getElementById('err-block');
+	  let isFormValid = true;
+      resetError(form, errorBlock);
+	  
+      if (!elems.user_name.value.trim().length) {
+		isFormValid = false;
+        showError(form, ' Укажите имя пользователя.', elems.user_name, errorBlock);
+      }
+	  
+      if (!elems.user_mail.value.trim().length) {
+		isFormValid = false;
+        showError(form, ' Укажите почту.', elems.user_mail, errorBlock);
+      }
+	  
+      if (!elems.user_nick.value.trim().length) {
+		isFormValid = false;
+        showError(form, ' Укажите псевдоним пользователя.', elems.user_nick, errorBlock);
+      }
+	  
+	  const pswdValue = elems.pswd.value;
+	  const pswd2Value = elems.pswd2.value;
+	  
+      if (!pswdValue.length) {
+		  isFormValid = false;
+        showError(form, ' Укажите пароль.', elems.pswd, errorBlock);
+	  }	
+	  
+      if (!pswd2Value.length) {
+		  isFormValid = false;
+        showError(form, ' Повторите пароль', elems.pswd2, errorBlock);
+      }
+	  
+	  if (pswdValue.length && pswd2Value.length && pswdValue !== pswd2Value) {
+		  isFormValid = false;
+		  showError(form, ' Пароли не совпадают', elems.pswd2, errorBlock);
+	  }
+
+      if (!elems.user_role.value) {
+		  isFormValid = false;
+        showError(form, ' Укажите роль.', elems.user_role, errorBlock);
+      }
+	  return isFormValid;
+    }
+	document.getElementById("btn_go").addEventListener("click", function(){
+		const formElement = document.getElementById("auth_form");
+		const isValidForm = validate(formElement);
+		if (isValidForm) {
+			let jsonData = {};
+			Array.prototype.slice.call(formElement.elements).forEach(element => {
+				jsonData[element.name] = element.value;
+			});
+			console.warn(jsonData);
+			location.href="Schedule.html"
+		}
+	});
+</script>	
+</body>
+</html>
