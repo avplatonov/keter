@@ -1,6 +1,13 @@
 body {
   font-family: 'Lato', Verdana;
   font-size: 100%;
+  //background: white;
+  //-webkit-align-items: center;  
+ // -ms-flex-align: center;  
+  //align-items: center;
+  //display: -webkit-flex;
+  //display: flex;
+  //flex-flow: column;
 }
 
 .img-responsive
@@ -12,7 +19,7 @@ body {
 
 .wrap
 {
-  width: 100%;  /* отступы относительно окна браузера */
+  width: 100%;  /* indentation relative to the browser window */
   background: #3538e5;
   height: 45px;
 }
@@ -20,22 +27,20 @@ body {
 .wrap2
 {
     background: #3538e5;
-    height: 130px;
-	margin-left:35%;
-	margin-right:30%;
-	position: absolute;
-    top: 40%;
+    height: 230px;
+    margin-left: 30%;
+    margin-right: 30%;
 }
-margin-left: 200 px; /* отступ слева */
+margin-left: 200 px; /* left indent */
    /*  margin-right: 50 px; */
 }
 
 .nav {
-  //float: center;   /* обтекание логотипа */
+  //float: center;   /* logo wrapping */
   //margin-top: 0.82em;
 }
 .nav > ul > li {
-  display:inline-block;  /* переопределение в строчно-блочный  */
+  display:inline-block;  /* overriding in line-block  */
 }
 .nav > ul > li.active a{
   background: d7d0c9;
@@ -49,7 +54,7 @@ margin-left: 200 px; /* отступ слева */
   text-transform: uppercase;
   padding: 0.5em 1em;
   color: d7d0c9;
-  -webkit-transition: 0.9s; /* плавный переход  */
+  -webkit-transition: 0.9s; /* smooth transition  */
   -moz-transition: 0.9s;
   -o-transition: 0.9s;
   transition: 0.9s;
@@ -106,7 +111,7 @@ border-left: 2px solid #56433D;
 text-align: left;
 }
 
-/* неверо€тна€ кнопочка */
+/* incredible button */
 a.obl{
         position: relative;
         display:block;
@@ -162,7 +167,7 @@ a.obl:hover:before, a.obl:hover:after{
 }
 
 
-/* неверо€тна€ кнопочка for red */
+/* incredible button for red */
 a.obl2{
         position: relative;
         display:block;
@@ -176,8 +181,8 @@ a.obl2{
         letter-spacing: 2px;
         border: 2px solid transparent;
 		background: white;
-		border-color: white; /* ÷вет границы */
-		border-style: solid; /* —тиль границы*/
+		border-color: white; 
+		border-style: solid; 
 		border-radius: 50px 50px 50px 50px;
 }
 
@@ -277,7 +282,50 @@ a.obl2:hover:before, a.obl:hover:after{
         }
 }
 
-.text_bord{
-  /* background-color: #f6f6f6;   ÷вет текстового пол€*/
-  border-radius: 10px 10px 10px 10px; /*«акругл€ем уголки*/
+/*incredible tree*/
+/* Remove default bullets */
+ul, #myUL {
+  list-style-type: none;
 }
+
+/* Remove margins and padding from the parent ul */
+#myUL {
+  margin: 0;
+  padding: 0;
+  height: 130px;
+  margin-left:10%;
+  position: absolute;
+  top: 20%;
+}
+
+/* Style the caret/arrow */
+.caret {
+  cursor: pointer; 
+  user-select: none; /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.caret::before {
+  content: "\25B6";
+  color: black;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+  transform: rotate(90deg); 
+}
+
+/* Hide the nested list */
+.nested {
+  /*display: none;*/
+  display: block;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.active {
+  /*display: block;*/
+  display: none;
+}
+
